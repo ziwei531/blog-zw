@@ -1,0 +1,63 @@
+---
+layout: layouts/base.njk
+title: Zi Wei
+description: Personal site of Zi Wei
+pagination:
+  data: collections.writing
+  size: {{ site.postsLimit }}
+  reverse: true
+  alias: pagedPosts
+permalink: "{% if pagination.pageNumber > 0 %}page-{{ pagination.pageNumber + 1 }}/{% endif %}index.html"
+---
+
+<section class="hero">
+  <div class="hero-inner">
+    <h1 class="hero-title">Hey there👋</h1>
+    <p class="hero-subtitle">
+      I'm Zi Wei. Currently a web developer.
+    </p>
+  </div>
+</section>
+
+<section class="posts-section">
+  <div class="posts-inner">
+    <h2 class="posts-heading">All writings</h2>
+    <ul class="post-list">
+      {% for post in pagedPosts %}
+        <li class="post-item">
+          <a href="{{ post.url }}" class="post-link">{{ post.data.title }}</a>
+          <time class="post-date">{{ post.date | formatDate }}</time>
+        </li>
+      {% endfor %}
+    </ul>
+
+    {% if pagination.pages | length > 1 %}
+    <nav class="pagination" aria-label="Pagination">
+      <div class="pagination-inner">
+        {% if pagination.href.previous %}
+          <a href="{{ pagination.href.previous }}" class="pagination-link pagination-prev">← Newer</a>
+        {% else %}
+          <span class="pagination-link pagination-prev pagination-disabled">← Newer</span>
+        {% endif %}
+
+        <span class="pagination-info">
+          {% for page in pagination.pages %}
+            {% set pageNum = loop.index0 %}
+            {% if pageNum === pagination.pageNumber %}
+              <span class="pagination-page active" aria-current="page">{{ pageNum + 1 }}</span>
+            {% else %}
+              <a href="{{ pagination.hrefs[pageNum] }}" class="pagination-page">{{ pageNum + 1 }}</a>
+            {% endif %}
+          {% endfor %}
+        </span>
+
+        {% if pagination.href.next %}
+          <a href="{{ pagination.href.next }}" class="pagination-link pagination-next">Older →</a>
+        {% else %}
+          <span class="pagination-link pagination-next pagination-disabled">Older →</span>
+        {% endif %}
+      </div>
+    </nav>
+    {% endif %}
+  </div>
+</section>
