@@ -25,7 +25,7 @@ permalink: "{% if pagination.pageNumber > 0 %}page-{{ pagination.pageNumber + 1 
     <ul class="post-list">
       {% for post in pagedPosts %}
         <li class="post-item">
-          <a href="{{ post.url }}" class="post-link">{{ post.data.title }}</a>
+          <a href="{{ post.url | url }}" class="post-link">{{ post.data.title }}</a>
           <time class="post-date">{{ post.date | formatDate }}</time>
         </li>
       {% endfor %}
@@ -35,7 +35,7 @@ permalink: "{% if pagination.pageNumber > 0 %}page-{{ pagination.pageNumber + 1 
     <nav class="pagination" aria-label="Pagination">
       <div class="pagination-inner">
         {% if pagination.href.previous %}
-          <a href="{{ pagination.href.previous }}" class="pagination-link pagination-prev">← Newer</a>
+          <a href="{{ pagination.href.previous | url }}" class="pagination-link pagination-prev">← Newer</a>
         {% else %}
           <span class="pagination-link pagination-prev pagination-disabled">← Newer</span>
         {% endif %}
@@ -46,13 +46,13 @@ permalink: "{% if pagination.pageNumber > 0 %}page-{{ pagination.pageNumber + 1 
             {% if pageNum === pagination.pageNumber %}
               <span class="pagination-page active" aria-current="page">{{ pageNum + 1 }}</span>
             {% else %}
-              <a href="{{ pagination.hrefs[pageNum] }}" class="pagination-page">{{ pageNum + 1 }}</a>
+              <a href="{{ pagination.hrefs[pageNum] | url }}" class="pagination-page">{{ pageNum + 1 }}</a>
             {% endif %}
           {% endfor %}
         </span>
 
         {% if pagination.href.next %}
-          <a href="{{ pagination.href.next }}" class="pagination-link pagination-next">Older →</a>
+          <a href="{{ pagination.href.next | url }}" class="pagination-link pagination-next">Older →</a>
         {% else %}
           <span class="pagination-link pagination-next pagination-disabled">Older →</span>
         {% endif %}
