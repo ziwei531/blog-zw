@@ -14,6 +14,30 @@
   <header class="site-header">
     <div class="header-inner">
       <a href="{{ '/' | url }}" class="site-logo"><span class="logo-bracket">&lt;</span> Zi Wei <span class="logo-bracket">&gt;</span></a>
+
+      <nav class="site-nav" aria-label="Site navigation">
+        <ul class="nav-list">
+          {% for link in nav.links %}
+            <li class="nav-item{% if link.children | length %} has-dropdown{% endif %}">
+              {% if link.url %}
+                <a href="{{ link.url | url }}" class="nav-link{% if link.children | length %} nav-trigger{% endif %}">{{ link.label }}</a>
+              {% else %}
+                <span class="nav-link nav-trigger">{{ link.label }}</span>
+              {% endif %}
+
+              {% if link.children | length %}
+                <ul class="nav-dropdown">
+                  {% for child in link.children %}
+                    <li class="nav-dropdown-item">
+                      <a href="{{ child.url | url }}" class="nav-dropdown-link">{{ child.label }}</a>
+                    </li>
+                  {% endfor %}
+                </ul>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      </nav>
     </div>
   </header>
 

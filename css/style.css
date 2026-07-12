@@ -116,6 +116,10 @@ a:hover {
   max-width: var(--max-width-text);
   margin-inline: auto;
   padding-inline: var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
 }
 
 .site-logo {
@@ -150,6 +154,109 @@ a:hover {
       0 0 16px hsla(200, 80%, 60%, 0.6)
     );
   transform: scale(1.08);
+}
+
+/* ==============================================
+   Site Navigation (right side)
+   ============================================== */
+
+.site-nav {
+  flex-shrink: 0;
+}
+
+.nav-list {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.nav-item {
+  position: relative;
+}
+
+.nav-link,
+.nav-trigger {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-text-muted);
+  border-radius: 6px;
+  transition: color 150ms ease, background 150ms ease;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.nav-link:hover,
+.nav-trigger:hover {
+  color: var(--color-accent);
+  background: hsla(200, 80%, 60%, 0.08);
+}
+
+/* Dropdown arrow indicator */
+.nav-trigger::after {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-left: var(--space-2);
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg) translateY(-1px);
+  transition: transform 200ms ease;
+}
+
+.nav-item:hover > .nav-trigger::after {
+  transform: rotate(-135deg) translateY(-1px);
+}
+
+/* ── Dropdown ── */
+
+.nav-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  min-width: 160px;
+  margin-top: var(--space-1);
+  padding-block: var(--space-2);
+  list-style: none;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition: opacity 180ms ease, visibility 180ms ease, transform 180ms ease;
+  z-index: 50;
+}
+
+.nav-item:hover > .nav-dropdown,
+.nav-dropdown:hover {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.nav-dropdown-item {
+  /* no extra styles needed */
+}
+
+.nav-dropdown-link {
+  display: block;
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  transition: color 150ms ease, background 150ms ease;
+}
+
+.nav-dropdown-link:hover {
+  color: var(--color-accent);
+  background: hsla(200, 80%, 60%, 0.08);
 }
 
 /* ==============================================

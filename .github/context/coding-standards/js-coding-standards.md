@@ -157,7 +157,7 @@ if(!value){
 - **Variables/functions:** camelCase — `contactId`, `bookingRef`, `isActive`, `getActiveEvents()`
 - **Classes/constructors:** PascalCase — `EventService`, `SubscriptionGrade`
 - **Private/internal helper functions:** prefixed with `_` — `_setupFeatures()`, `_notifyDelegates()`
-- **Constants (true constants):** UPPER_SNAKE_CASE — `MAX_RETRIES`, `DEFAULT_TIMEOUT`
+- **Constants:** camelCase — `maxRetries`, `defaultTimeout`, `jumpForce`
 
 ### Function Names
 

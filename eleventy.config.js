@@ -5,6 +5,7 @@ export default function ( eleventyConfig ) {
 	eleventyConfig.addPassthroughCopy( "images" );
 	eleventyConfig.addPassthroughCopy( "js" );
 	eleventyConfig.addPassthroughCopy( "robots.txt" );
+	eleventyConfig.addPassthroughCopy( { "game-corner/flappy-bird": "game-corner/flappy-bird" } );
 
 	// Keep GitHub metadata and tooling out of the built site
 	eleventyConfig.ignores.add( ".github/**" );

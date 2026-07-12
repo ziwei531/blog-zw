@@ -1,0 +1,29 @@
+--- 
+layout: layouts/base.njk
+title: Game Corner
+permalink: /game-corner/index.html
+---
+
+<section class="hero">
+  <div class="hero-inner">
+    <h1 class="hero-title">Game Corner</h1>
+
+    <p>Some games I've prepared for fun below:</p>
+  </div>
+</section>
+
+{% for link in nav.links %}
+  {% if link.label == "Game corner" and link.children | length %}
+<section class="posts-section">
+  <div class="posts-inner">
+    <ul class="post-list">
+      {% for child in link.children %}
+        <li class="post-item">
+          <a href="{{ child.url | url }}" class="post-link">{{ child.label }}</a>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
+</section>
+  {% endif %}
+{% endfor %}

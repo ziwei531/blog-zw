@@ -1,0 +1,61 @@
+/* ==============================================
+   Flappy Bird — Game page layout (isolated)
+   Every rule scoped under .flappy-game-page so no
+   styles leak to the main site's style.css.
+   ============================================== */
+
+/* ── Overrides for main content area ── */
+.flappy-game-page main {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0;
+	overflow: hidden;
+}
+
+/* ── Canvas wrapper ── */
+.flappy-game-page .game-wrapper {
+	width: 100%;
+	max-width: 500px;
+	aspect-ratio: 2 / 3;
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.flappy-game-page .game-wrapper canvas {
+	width: 100%;
+	height: 100%;
+	display: block;
+	border-radius: 6px;
+	box-shadow: 0 4px 24px rgba( 0, 0, 0, 0.4 );
+}
+
+/* ── Narrow screens: fill more available width ── */
+@media ( max-width: 600px ) {
+	.flappy-game-page .game-wrapper {
+		max-width: 100%;
+		aspect-ratio: auto;
+		height: 70vh;
+	}
+
+	.flappy-game-page .game-wrapper canvas {
+		border-radius: 0;
+	}
+}
+
+/* ── Short viewports: shrink to avoid scroll ── */
+@media ( max-height: 500px ) {
+	.flappy-game-page .game-wrapper {
+		height: 100%;
+		aspect-ratio: auto;
+	}
+
+	.flappy-game-page .game-wrapper canvas {
+		border-radius: 0;
+	}
+}
+
+/* ── Reduced motion: ignore (game runs at its own frame rate) ── */
