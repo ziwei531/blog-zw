@@ -32,7 +32,7 @@ The dev server runs at `http://localhost:8081` by default. Production output goe
 ├── js/
 │   └── main.js
 ├── posts/
-│   ├── posts.json           # Directory data file (applies layout & tags to all posts)
+│   ├── posts.11tydata.js    # Directory data file (layout, tags, draft logic)
 │   └── *.md                 # Blog posts written in Markdown
 ├── eleventy.config.js       # Eleventy configuration
 ├── index.html               # Home page with paginated post listing
@@ -44,7 +44,9 @@ The dev server runs at `http://localhost:8081` by default. Production output goe
 
 - **Dark theme** — CSS custom properties for consistent, maintainable styling
 - **Markdown posts** — Write content in `.md` files with YAML frontmatter (`title`, `date`, `tags`)
-- **Paginated home page** — Lists all posts via the `writing` collection (3 per page)
+- **Paginated home page** — Lists published posts via the `published` collection (5 per page)
+- **Drafts** — Set `draft: true` in frontmatter to hide a post from production (still visible on localhost)
+- **Browser-based editing** — Optional [Pages CMS](https://pagescms.org/) integration for writing posts in a browser UI
 - **Task lists** — Rendered via `markdown-it-task-lists` plugin
 - **Passthrough copy** — `css/`, `images/`, and `js/` folders are copied directly to `_site/`
 
@@ -54,8 +56,38 @@ The dev server runs at `http://localhost:8081` by default. Production output goe
 |---|---|
 | **Templates** | Nunjucks (`.njk`) for layouts; `{% raw %}{{ }}{% endraw %}` for data interpolation |
 | **Layout chain** | `posts/*.md` → `post.njk` → `base.njk` |
-| **Collections** | `writing` collection grabs all `posts/*.md` via `addCollection` + `getFilteredByGlob` |
-| **Directory data** | `posts.json` cascades `layout` and `tags` to every file in `posts/` |
+| **Collections** | `writing` grabs all `posts/*.md`; `published` filters out drafts when building for production |
+| **Directory data** | `posts.11tydata.js` cascades `layout`, `tags`, and draft-aware permalink logic to every file in `posts/` |
+
+## Drafts
+
+Add `draft: true` to any post's frontmatter to hide it from production builds:
+
+```yaml
+---
+title: Work in Progress
+date: 2026-07-12
+tags: posts
+draft: true
+---
+```
+
+| Command | Draft posts |
+|---|---|
+| `npm start` (localhost) | ✅ Visible in listing and accessible by URL |
+| `npm run build` (production) | ❌ Hidden from listing, page not generated |
+
+Drafts are detected by checking for the `--serve` flag in `process.argv` — no extra environment variables needed.
+
+## Pages CMS
+
+This project includes a [`.pages.yml`](./.pages.yml) config for [Pages CMS](https://pagescms.org/), an open-source Git-based CMS. To start editing posts in a browser:
+
+1. Go to [app.pagescms.org](https://app.pagescms.org/) and sign in with GitHub
+2. Install the Pages CMS GitHub App when prompted
+3. Open this repository — Pages CMS auto-detects `.pages.yml`
+4. Edit posts with a rich-text editor, upload images, and toggle draft status
+5. Changes are committed directly to the repo and trigger a rebuild
 | **Markdown** | Eleventy's built-in markdown-it, extended with `amendLibrary` for plugins |
 
 ## License
