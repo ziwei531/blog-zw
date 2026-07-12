@@ -14,9 +14,19 @@ export default function ( eleventyConfig ) {
 		mdLib.use( markdownItTaskLists );
 	} );
 
-	// "writing" collection powers the posts listing on the landing page
+	// All posts — unfiltered, always includes drafts
 	eleventyConfig.addCollection( "writing", ( collectionApi ) => {
 		return collectionApi.getFilteredByGlob( "posts/*.md" );
+	} );
+
+	// Published posts only — drafts are hidden in production builds
+	// In dev (npm start / --serve), all posts appear; in prod (npm run build), drafts are excluded
+	eleventyConfig.addCollection( "published", ( collectionApi ) => {
+		const isDev = process.env.ELEVENTY_RUN_MODE === "serve";
+
+		return collectionApi
+			.getFilteredByGlob( "posts/*.md" )
+			.filter( ( post ) => isDev || !post.data.draft );
 	} );
 
 	// Keeps the footer copyright year current without template logic

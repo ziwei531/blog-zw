@@ -38,6 +38,11 @@ content:
         label: Description
         type: text
         description: Brief summary for SEO, social previews, and post listings
+      - name: draft
+        label: Draft
+        type: boolean
+        description: Hide this post from the published site (always visible on localhost)
+        default: false
       - name: body
         label: Body
         type: rich-text

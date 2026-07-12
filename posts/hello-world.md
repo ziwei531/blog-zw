@@ -2,6 +2,7 @@
 title: Eleventy Markdown Testing
 date: 2026-06-15
 tags: posts
+draft: true
 ---
 
 First post on this site. Nothing fancy — just getting the words flowing and the ideas out there. Sometimes the hardest part is simply starting.
