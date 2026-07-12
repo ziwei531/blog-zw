@@ -122,11 +122,34 @@ a:hover {
   font-size: var(--text-lg);
   font-weight: 600;
   color: var(--color-text);
-  letter-spacing: -0.01em;
+  letter-spacing: 0.03em;
   text-decoration: none;
+  transition: color 200ms ease;
 }
 .site-logo:hover {
   color: var(--color-accent);
+}
+
+.logo-bracket {
+  font-family: var(--font-mono);
+  font-weight: 300;
+  font-size: 1.2em;
+  background: linear-gradient(
+    135deg,
+    var(--color-accent),
+    hsl(180, 70%, 60%)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 10px hsla(200, 80%, 60%, 0.35));
+  transition: filter 300ms ease, transform 300ms ease;
+}
+.site-logo:hover .logo-bracket {
+  filter: drop-shadow(
+      0 0 16px hsla(200, 80%, 60%, 0.6)
+    );
+  transform: scale(1.08);
 }
 
 /* ==============================================
