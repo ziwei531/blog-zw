@@ -285,8 +285,10 @@ scene( "game", () => {
 	} );
 
 	// ── Pipe spawning ──
-	// Each pipe is a single rect with a slightly wider cap rect at the opening.
-	// The cap is added as a separate object that moves at the same speed.
+	// Each pipe is a body rect with a slightly wider cap rect at the opening.
+	// Instead of giving both objects independent move() components (which can
+	// drift apart and cause visual glitching), only the body moves.  The cap
+	// syncs its x-position to the body every frame so they stay locked together.
 	function spawnPipe() {
 
 		const gapCenter = rand(
@@ -298,8 +300,8 @@ scene( "game", () => {
 		const bottomH = height() - groundHeight - gapCenter - pipeGap / 2;
 		const x       = width() + 20;
 
-		// Top pipe body (opens downward)
-		add( [
+		// ── Top pipe ──
+		const topBody = add( [
 			  pos( x, 0 )
 			, rect( pipeWidth, topH )
 			, color( pipeColor[ 0 ], pipeColor[ 1 ], pipeColor[ 2 ] )
@@ -310,23 +312,30 @@ scene( "game", () => {
 			, "pipe"
 		] );
 
-		// Top pipe cap
-		add( [
+		const topCap = add( [
 			  pos( x - 5, topH )
 			, rect( pipeWidth + 10, 12 )
 			, color( pipeCap[ 0 ], pipeCap[ 1 ], pipeCap[ 2 ] )
 			, outline( 2 )
 			, area()
-			, move( LEFT, pipeSpeed )
 			, offscreen( { destroy: true } )
 			, "pipe"
 			, { passed: false }
 		] );
 
-		// Bottom pipe body (opens upward)
+		// Lock cap to body so they never drift apart
+		topBody.onUpdate( () => {
+			topCap.pos.x = topBody.pos.x - 5;
+		} );
+
+		topBody.onDestroy( () => {
+			topCap.destroy();
+		} );
+
+		// ── Bottom pipe ──
 		const bottomY = gapCenter + pipeGap / 2;
 
-		add( [
+		const bottomBody = add( [
 			  pos( x, bottomY )
 			, rect( pipeWidth, bottomH )
 			, color( pipeColor[ 0 ], pipeColor[ 1 ], pipeColor[ 2 ] )
@@ -337,17 +346,24 @@ scene( "game", () => {
 			, "pipe"
 		] );
 
-		// Bottom pipe cap
-		add( [
+		const bottomCap = add( [
 			  pos( x - 5, bottomY )
 			, rect( pipeWidth + 10, 12 )
 			, color( pipeCap[ 0 ], pipeCap[ 1 ], pipeCap[ 2 ] )
 			, outline( 2 )
 			, area()
-			, move( LEFT, pipeSpeed )
 			, offscreen( { destroy: true } )
 			, "pipe"
 		] );
+
+		// Lock cap to body so they never drift apart
+		bottomBody.onUpdate( () => {
+			bottomCap.pos.x = bottomBody.pos.x - 5;
+		} );
+
+		bottomBody.onDestroy( () => {
+			bottomCap.destroy();
+		} );
 
 	}
 
