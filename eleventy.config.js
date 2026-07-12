@@ -22,7 +22,7 @@ export default function ( eleventyConfig ) {
 	// Published posts only — drafts are hidden in production builds
 	// In dev, all posts appear; `npm run build` excludes drafts
 	eleventyConfig.addCollection( "published", ( collectionApi ) => {
-		const isProd = process.env.ELEVENTY_RUN_MODE === "build";
+		const isProd = !process.argv.includes( "--serve" );
 
 		return collectionApi
 			.getFilteredByGlob( "posts/*.md" )

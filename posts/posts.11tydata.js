@@ -3,7 +3,7 @@ export default {
 	, tags: "posts"
 	, eleventyComputed: {
 		permalink( data ) {
-			const isProd = process.env.ELEVENTY_RUN_MODE === "build";
+			const isProd = !process.argv.includes( "--serve" );
 
 			// Draft posts are hidden in production builds but visible otherwise
 			if ( data.draft && isProd ) {
