@@ -20,13 +20,13 @@ export default function ( eleventyConfig ) {
 	} );
 
 	// Published posts only — drafts are hidden in production builds
-	// In dev (npm start / --serve), all posts appear; in prod (npm run build), drafts are excluded
+	// In dev, all posts appear; `npm run build` excludes drafts
 	eleventyConfig.addCollection( "published", ( collectionApi ) => {
-		const isDev = process.env.ELEVENTY_RUN_MODE === "serve";
+		const isProd = process.env.ELEVENTY_RUN_MODE === "build";
 
 		return collectionApi
 			.getFilteredByGlob( "posts/*.md" )
-			.filter( ( post ) => isDev || !post.data.draft );
+			.filter( ( post ) => !isProd || !post.data.draft );
 	} );
 
 	// Keeps the footer copyright year current without template logic
