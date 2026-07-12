@@ -1,8 +1,7 @@
 import markdownItTaskLists from "markdown-it-task-lists";
-import passthrough         from "./config/passthrough.js";
 
 export default function ( eleventyConfig ) {
-	passthrough( eleventyConfig );
+	_configureEleventyPassthroughs( eleventyConfig );
 
 	// Keep GitHub metadata and tooling out of the built site
 	eleventyConfig.ignores.add( ".github/**" );
@@ -62,4 +61,22 @@ export default function ( eleventyConfig ) {
 		, htmlTemplateEngine     : "njk"
 		, markdownTemplateEngine : "njk"
 	};
+}
+
+// ── Private helpers ──────────────────────────────────────────
+
+function _configureEleventyPassthroughs( eleventyConfig ) {
+	// Global static directories
+	eleventyConfig.addPassthroughCopy( "css" );
+	eleventyConfig.addPassthroughCopy( "images" );
+	eleventyConfig.addPassthroughCopy( "js" );
+	eleventyConfig.addPassthroughCopy( "robots.txt" );
+
+	// Per-page / per-feature assets
+	eleventyConfig.addPassthroughCopy( {
+		"game-corner/flappy-bird/flappy.css": "game-corner/flappy-bird/flappy.css",
+	} );
+	eleventyConfig.addPassthroughCopy( {
+		"game-corner/flappy-bird/js": "game-corner/flappy-bird/js",
+	} );
 }
