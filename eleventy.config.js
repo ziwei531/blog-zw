@@ -1,42 +1,57 @@
 import markdownItTaskLists from "markdown-it-task-lists";
 
-export default function (eleventyConfig) {
-  // Copy static assets to the output folder
-  eleventyConfig.addPassthroughCopy("css");
-  eleventyConfig.addPassthroughCopy("images");
-  eleventyConfig.addPassthroughCopy("js");
-  eleventyConfig.addPassthroughCopy("robots.txt");
+export default function ( eleventyConfig ) {
+	eleventyConfig.addPassthroughCopy( "css" );
+	eleventyConfig.addPassthroughCopy( "images" );
+	eleventyConfig.addPassthroughCopy( "js" );
+	eleventyConfig.addPassthroughCopy( "robots.txt" );
 
-  // Markdown-it plugins
-  eleventyConfig.amendLibrary("md", (mdLib) => {
-    mdLib.use(markdownItTaskLists);
-  });
+	// Keep GitHub metadata and tooling out of the built site
+	eleventyConfig.ignores.add( ".github/**" );
 
-  // Custom collection: all markdown posts regardless of tags
-  eleventyConfig.addCollection("writing", (collectionApi) => {
-    return collectionApi.getFilteredByGlob("posts/*.md");
-  });
+	// Enable task-list checkboxes in Markdown
+	eleventyConfig.amendLibrary( "md", ( mdLib ) => {
+		mdLib.use( markdownItTaskLists );
+	} );
 
-  // Shortcode for current year (used in footer)
-  eleventyConfig.addShortcode("year", () => `${new Date().getFullYear()}`);
+	// "writing" collection powers the posts listing on the landing page
+	eleventyConfig.addCollection( "writing", ( collectionApi ) => {
+		return collectionApi.getFilteredByGlob( "posts/*.md" );
+	} );
 
-  // Nunjucks filter: take first N items from an array
-  eleventyConfig.addNunjucksFilter("head", (arr, n) => arr.slice(0, n));
+	// Keeps the footer copyright year current without template logic
+	eleventyConfig.addShortcode( "year", () => `${ new Date().getFullYear() }` );
 
-  // Nunjucks filter: format a date as "Mon dd, yyyy"
-  eleventyConfig.addNunjucksFilter("formatDate", (d) => {
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
-                    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    return `${months[d.getMonth()]} ${String(d.getDate()).padStart(2, "0")}, ${d.getFullYear()}`;
-  });
+	// Powers list truncation on the landing page without a separate collection
+	eleventyConfig.addNunjucksFilter( "head", ( arr, n ) => arr.slice( 0, n ) );
 
-  return {
-    dir: {
-      input: ".",
-      output: "_site",
-      includes: "_includes",
-    },
-    htmlTemplateEngine: "njk",
-    markdownTemplateEngine: "njk",
-  };
+	// Formats post dates for the writing index (no external date lib needed)
+	eleventyConfig.addNunjucksFilter( "formatDate", ( d ) => {
+		const months = [
+			  "Jan"
+			, "Feb"
+			, "Mar"
+			, "Apr"
+			, "May"
+			, "Jun"
+			, "Jul"
+			, "Aug"
+			, "Sep"
+			, "Oct"
+			, "Nov"
+			, "Dec"
+		];
+
+		return `${ months[ d.getMonth() ] } ${ String( d.getDate() ).padStart( 2, "0" ) }, ${ d.getFullYear() }`;
+	} );
+
+	return {
+		dir: {
+			  input    : "."
+			, output   : "_site"
+			, includes : "_includes"
+		}
+		, htmlTemplateEngine     : "njk"
+		, markdownTemplateEngine : "njk"
+	};
 }
