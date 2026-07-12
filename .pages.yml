@@ -1,0 +1,55 @@
+# ── Media: where uploaded images/files live ──────────────────────────
+media:
+  input: images
+  output: /images
+
+# ── Content: the editable collections ────────────────────────────────
+content:
+  - name: posts
+    label: Posts
+    type: collection
+    path: posts
+    format: yaml-frontmatter
+    filename: "{primary}.md"
+    view:
+      fields: [title, date, tags]
+      primary: title
+      sort: [date, title]
+      default:
+        sort: date
+        order: desc
+    fields:
+      - name: title
+        label: Title
+        type: string
+        required: true
+      - name: date
+        label: Date
+        type: date
+        options:
+          format: yyyy-MM-dd
+      - name: tags
+        label: Tags
+        type: string
+        description: >-
+          Additional tags beyond the default "posts"
+          (comma-separated, e.g. "featured, tutorial")
+      - name: description
+        label: Description
+        type: text
+        description: Brief summary for SEO, social previews, and post listings
+      - name: body
+        label: Body
+        type: rich-text
+
+# ── Settings: global behavior ────────────────────────────────────────
+settings:
+  content:
+    merge: true
+  commit:
+    identity: user
+    templates:
+      create: "feat(posts): add {filename}"
+      update: "feat(posts): update {filename}"
+      delete: "feat(posts): remove {filename}"
+      rename: "feat(posts): rename {oldFilename} -> {newFilename}"
