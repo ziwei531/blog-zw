@@ -5,10 +5,10 @@ import kaplay from "https://unpkg.com/kaplay@3001/dist/kaplay.mjs";
 
 kaplay( {
 	  canvas     : document.getElementById( "game" )
-	, width      : 400
-	, height     : 600
+	, width      : 500
+	, height     : 750
 	, background : [ 78, 192, 202 ]
-	, crisp      : true
+	, crisp      : false
 	, stretch    : true
 	, letterbox  : true
 } );
