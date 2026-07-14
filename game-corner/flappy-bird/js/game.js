@@ -1,9 +1,9 @@
-// Flappy Bird clone — Kaboom.js v3000
-// Drawn with Kaboom primitives (rect, circle, color); no external sprite assets needed
+// Flappy Bird clone — KAPLAY.js (maintained successor of Kaboom.js)
+// Drawn with KAPLAY primitives (rect, circle, color); no external sprite assets needed
 
-import kaboom from "https://unpkg.com/kaboom@3000/dist/kaboom.mjs";
+import kaplay from "https://unpkg.com/kaplay@3001/dist/kaplay.mjs";
 
-kaboom( {
+kaplay( {
 	  canvas     : document.getElementById( "game" )
 	, width      : 400
 	, height     : 600
@@ -41,7 +41,7 @@ const lightGrey   = [ 220, 220, 220 ];
 // Persists across game restarts so the player can try to beat their best
 let highScore = 0;
 
-// ── "OOF" pop-up on death (replaces Kaboom's built-in "KABOOM" particles) ──
+// ── "OOF" pop-up on death (replaces built-in death particles) ──
 function showOof( deathPos ) {
 
 	const oof = add( [
@@ -285,10 +285,9 @@ scene( "game", () => {
 	} );
 
 	// ── Pipe spawning ──
-	// Each pipe is a body rect with a slightly wider cap rect at the opening.
-	// Instead of giving both objects independent move() components (which can
-	// drift apart and cause visual glitching), only the body moves.  The cap
-	// syncs its x-position to the body every frame so they stay locked together.
+	// Each pipe pair uses a parent container that moves left.  The body and
+	// cap are children of that container so they are locked together perfectly
+	// through Kaboom's transform hierarchy — no drift possible.
 	function spawnPipe() {
 
 		const gapCenter = rand(
@@ -300,70 +299,66 @@ scene( "game", () => {
 		const bottomH = height() - groundHeight - gapCenter - pipeGap / 2;
 		const x       = width() + 20;
 
-		// ── Top pipe ──
-		const topBody = add( [
+		// ── Top pipe (parent moves, children ride along) ──
+		const topPipe = add( [
 			  pos( x, 0 )
-			, rect( pipeWidth, topH )
-			, color( pipeColor[ 0 ], pipeColor[ 1 ], pipeColor[ 2 ] )
-			, outline( 2 )
-			, area()
 			, move( LEFT, pipeSpeed )
 			, offscreen( { destroy: true } )
-			, "pipe"
-		] );
-
-		const topCap = add( [
-			  pos( x - 5, topH )
-			, rect( pipeWidth + 10, 12 )
-			, color( pipeCap[ 0 ], pipeCap[ 1 ], pipeCap[ 2 ] )
-			, outline( 2 )
-			, area()
-			, offscreen( { destroy: true } )
+			, z( 5 )
 			, "pipe"
 			, { passed: false }
 		] );
 
-		// Lock cap to body so they never drift apart
-		topBody.onUpdate( () => {
-			topCap.pos.x = topBody.pos.x - 5;
-		} );
-
-		topBody.onDestroy( () => {
-			topCap.destroy();
-		} );
-
-		// ── Bottom pipe ──
-		const bottomY = gapCenter + pipeGap / 2;
-
-		const bottomBody = add( [
-			  pos( x, bottomY )
-			, rect( pipeWidth, bottomH )
+		// Body (child — positioned 5 px inside the left cap overhang)
+		topPipe.add( [
+			  rect( pipeWidth, topH )
+			, pos( 5, 0 )
 			, color( pipeColor[ 0 ], pipeColor[ 1 ], pipeColor[ 2 ] )
 			, outline( 2 )
 			, area()
-			, move( LEFT, pipeSpeed )
-			, offscreen( { destroy: true } )
 			, "pipe"
 		] );
 
-		const bottomCap = add( [
-			  pos( x - 5, bottomY )
-			, rect( pipeWidth + 10, 12 )
+		// Cap (child — 5 px overhang on each side)
+		topPipe.add( [
+			  rect( pipeWidth + 10, 12 )
+			, pos( 0, topH )
 			, color( pipeCap[ 0 ], pipeCap[ 1 ], pipeCap[ 2 ] )
 			, outline( 2 )
 			, area()
-			, offscreen( { destroy: true } )
 			, "pipe"
 		] );
 
-		// Lock cap to body so they never drift apart
-		bottomBody.onUpdate( () => {
-			bottomCap.pos.x = bottomBody.pos.x - 5;
-		} );
+		// ── Bottom pipe (parent moves, children ride along) ──
+		const bottomY = gapCenter + pipeGap / 2;
 
-		bottomBody.onDestroy( () => {
-			bottomCap.destroy();
-		} );
+		const bottomPipe = add( [
+			  pos( x, bottomY )
+			, move( LEFT, pipeSpeed )
+			, offscreen( { destroy: true } )
+			, z( 5 )
+			, "pipe"
+		] );
+
+		// Body (child)
+		bottomPipe.add( [
+			  rect( pipeWidth, bottomH )
+			, pos( 5, 0 )
+			, color( pipeColor[ 0 ], pipeColor[ 1 ], pipeColor[ 2 ] )
+			, outline( 2 )
+			, area()
+			, "pipe"
+		] );
+
+		// Cap (child)
+		bottomPipe.add( [
+			  rect( pipeWidth + 10, 12 )
+			, pos( 0, 0 )
+			, color( pipeCap[ 0 ], pipeCap[ 1 ], pipeCap[ 2 ] )
+			, outline( 2 )
+			, area()
+			, "pipe"
+		] );
 
 	}
 
@@ -389,8 +384,10 @@ scene( "game", () => {
 	} );
 
 	// ── Score tracking: increment when the pipe's right edge passes the bird ──
+	// The parent container's pos.x is the left edge of the cap; the cap
+	// overhangs the body by 5 px on each side, so total width = pipeWidth + 10.
 	onUpdate( "pipe", ( p ) => {
-		if ( p.passed === false && p.pos.x + p.width < bird.pos.x ) {
+		if ( p.passed === false && p.pos.x + pipeWidth + 10 < bird.pos.x ) {
 			p.passed = true;
 			score++;
 			scoreLabel.text = score;
