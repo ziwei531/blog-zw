@@ -6,6 +6,7 @@
   <meta name="robots" content="noindex, nofollow">
   <meta name="description" content="{{ description or 'Zi Wei — Personal site' }}">
   <title>{{ title or "Zi Wei" }}{% if subtitle %} — {{ subtitle }}{% endif %}</title>
+  {% include "theme-init.njk" %}
   <link rel="stylesheet" href="{{ '/css/style.css' | url }}">
   {% if pageCss %}
   <link rel="stylesheet" href="{{ pageCss | url }}">
@@ -59,5 +60,6 @@
   {% if pageJs %}
   <script{% if pageJsType %} type="{{ pageJsType }}"{% endif %} src="{{ pageJs | url }}"></script>
   {% endif %}
+  <script src="{{ '/js/main.js' | url }}"></script>
 </body>
 </html>

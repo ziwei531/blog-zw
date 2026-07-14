@@ -2,7 +2,8 @@
    Zi Wei — Minimal Dark Mode
    ============================================== */
 
-:root {
+:root,
+[data-theme="dark"] {
   /* Colors */
   --color-bg:            hsl(215, 28%, 7%);
   --color-bg-elevated:   hsl(215, 25%, 11%);
@@ -11,6 +12,17 @@
   --color-accent:        hsl(200, 80%, 60%);
   --color-accent-hover:  hsl(200, 80%, 68%);
   --color-border:        hsl(215, 15%, 18%);
+
+  /* Accent opacity variants */
+  --color-accent-dim:       hsla(200, 80%, 60%, 0.08);
+  --color-accent-faint:     hsla(200, 80%, 60%, 0.05);
+  --color-accent-soft:      hsla(200, 80%, 60%, 0.15);
+  --color-accent-glow:      hsla(200, 80%, 60%, 0.2);
+  --color-code-bg:          hsla(215, 20%, 60%, 0.1);
+  --color-table-stripe:     hsla(215, 25%, 12%, 0.5);
+  --color-shadow-heavy:     0 8px 24px rgba(0, 0, 0, 0.4);
+  --color-logo-glow:        0 0 10px hsla(200, 80%, 60%, 0.35);
+  --color-logo-glow-hover:  0 0 16px hsla(200, 80%, 60%, 0.6);
 
   /* Typography */
   --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
@@ -39,6 +51,26 @@
 
   /* Layout */
   --max-width-text: 90ch;
+}
+
+[data-theme="light"] {
+  --color-bg:            hsl(0, 0%, 98%);
+  --color-bg-elevated:   hsl(0, 0%, 94%);
+  --color-text:          hsl(0, 0%, 10%);
+  --color-text-muted:    hsl(0, 0%, 40%);
+  --color-accent:        hsl(200, 80%, 45%);
+  --color-accent-hover:  hsl(200, 80%, 38%);
+  --color-border:        hsl(0, 0%, 85%);
+
+  --color-accent-dim:       hsla(200, 80%, 45%, 0.08);
+  --color-accent-faint:     hsla(200, 80%, 45%, 0.05);
+  --color-accent-soft:      hsla(200, 80%, 45%, 0.12);
+  --color-accent-glow:      hsla(200, 80%, 45%, 0.15);
+  --color-code-bg:          hsla(0, 0%, 0%, 0.06);
+  --color-table-stripe:     hsla(0, 0%, 0%, 0.03);
+  --color-shadow-heavy:     0 8px 24px rgba(0, 0, 0, 0.1);
+  --color-logo-glow:        0 0 10px hsla(200, 80%, 45%, 0.2);
+  --color-logo-glow-hover:  0 0 16px hsla(200, 80%, 45%, 0.35);
 }
 
 /* ==============================================
@@ -90,7 +122,7 @@ a:hover {
 }
 
 ::selection {
-  background: hsla(200, 80%, 60%, 0.2);
+  background: var(--color-accent-glow);
   color: var(--color-text);
 }
 
@@ -146,13 +178,11 @@ a:hover {
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  filter: drop-shadow(0 0 10px hsla(200, 80%, 60%, 0.35));
+  filter: drop-shadow(var(--color-logo-glow));
   transition: filter 300ms ease, transform 300ms ease;
 }
 .site-logo:hover .logo-bracket {
-  filter: drop-shadow(
-      0 0 16px hsla(200, 80%, 60%, 0.6)
-    );
+  filter: drop-shadow(var(--color-logo-glow-hover));
   transform: scale(1.08);
 }
 
@@ -193,7 +223,7 @@ a:hover {
 .nav-link:hover,
 .nav-trigger:hover {
   color: var(--color-accent);
-  background: hsla(200, 80%, 60%, 0.08);
+  background: var(--color-accent-dim);
 }
 
 /* Dropdown arrow indicator */
@@ -226,7 +256,7 @@ a:hover {
   background: var(--color-bg-elevated);
   border: 1px solid var(--color-border);
   border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--color-shadow-heavy);
 
   opacity: 0;
   visibility: hidden;
@@ -256,7 +286,7 @@ a:hover {
 
 .nav-dropdown-link:hover {
   color: var(--color-accent);
-  background: hsla(200, 80%, 60%, 0.08);
+  background: var(--color-accent-dim);
 }
 
 /* ==============================================
@@ -431,7 +461,7 @@ a:hover {
 .prose strong { font-weight: 700; color: var(--color-text); }
 .prose em { font-style: italic; }
 .prose del { color: var(--color-text-muted); }
-.prose mark { background: hsla(200, 80%, 60%, 0.2); color: var(--color-text); padding-inline: 0.15em; border-radius: 2px; }
+.prose mark { background: var(--color-accent-glow); color: var(--color-text); padding-inline: 0.15em; border-radius: 2px; }
 .prose ins { text-decoration: none; border-bottom: 1px solid var(--color-accent); }
 
 /* Inline code */
@@ -440,7 +470,7 @@ a:hover {
   font-size: 0.88em;
   padding: 0.15em 0.4em;
   border-radius: 4px;
-  background: hsla(215, 20%, 60%, 0.1);
+  background: var(--color-code-bg);
   color: var(--color-accent);
 }
 
@@ -468,7 +498,7 @@ a:hover {
   margin-block: var(--space-6);
   padding: var(--space-4) var(--space-5);
   border-left: 3px solid var(--color-accent);
-  background: hsla(200, 80%, 60%, 0.05);
+  background: var(--color-accent-faint);
   border-radius: 0 6px 6px 0;
   color: var(--color-text-muted);
 }
@@ -543,7 +573,7 @@ a:hover {
 }
 
 .prose tr:nth-child(even) td {
-  background: hsla(215, 25%, 12%, 0.5);
+  background: var(--color-table-stripe);
 }
 
 /* Images */
@@ -662,12 +692,12 @@ a:hover {
 
 .pagination-page:hover {
   color: var(--color-accent);
-  background: hsla(200, 80%, 60%, 0.1);
+  background: var(--color-accent-dim);
 }
 
 .pagination-page.active {
   color: var(--color-accent);
-  background: hsla(200, 80%, 60%, 0.15);
+  background: var(--color-accent-soft);
 }
 
 /* ==============================================
@@ -701,4 +731,52 @@ a:hover {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ==============================================
+   Theme Toggle
+   ============================================== */
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+  transition: color 150ms ease, background 150ms ease, border-color 150ms ease;
+  flex-shrink: 0;
+  margin-left: var(--space-2);
+}
+
+.theme-toggle:hover {
+  color: var(--color-accent);
+  background: var(--color-accent-dim);
+  border-color: var(--color-accent);
+}
+
+.theme-toggle:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Show/hide icons based on theme */
+.theme-toggle .icon-sun,
+.theme-toggle .icon-moon {
+  display: none;
+}
+
+[data-theme="dark"] .theme-toggle .icon-moon {
+  display: inline;
+}
+
+[data-theme="light"] .theme-toggle .icon-sun {
+  display: inline;
 }
