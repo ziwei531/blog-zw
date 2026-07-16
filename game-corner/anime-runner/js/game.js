@@ -621,7 +621,7 @@ scene( "menu", () => {
 
 	// Title
 	add( [
-		  text( "Anime Runner", { size: 48 } )
+		  text( "Runner game", { size: 48 } )
 		, anchor( "center" )
 		, pos( width() / 2, height() / 3 - 20 )
 		, color( white[ 0 ], white[ 1 ], white[ 2 ] )
