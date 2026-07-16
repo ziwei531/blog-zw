@@ -815,10 +815,10 @@ scene( "menu", () => {
 	const menuMika = buildMika( false );
 	menuMika.pos = vec2( width() / 2, height() / 2 + 20 );
 
-	// Best score
+	// Best time
 	if ( highScore > 0 ) {
 		add( [
-			  text( `Best: ${ highScore }`, { size: 22 } )
+			  text( `Best: ${ highScore.toFixed( 2 ) }s`, { size: 22 } )
 			, anchor( "center" )
 			, pos( width() / 2, height() * 0.70 )
 			, color( textGrey[ 0 ], textGrey[ 1 ], textGrey[ 2 ] )
@@ -1145,7 +1145,7 @@ scene( "game", () => {
 		] );
 
 		wait( 0.15, () => {
-			go( "gameover", score, mika.pos );
+			go( "gameover", elapsed, mika.pos );
 		} );
 	} );
 
@@ -1244,12 +1244,12 @@ function setDuckPose( mika, active ) {
 // ─────────────────────────────────────────────
 //  Game Over scene
 // ─────────────────────────────────────────────
-scene( "gameover", ( score, deathPos ) => {
+scene( "gameover", ( survivedTime, deathPos ) => {
 
-	if ( score > highScore ) {
-		highScore = score;
+	if ( survivedTime > highScore ) {
+		highScore = survivedTime;
 
-		// Persist best score to localStorage (new feature — not in Flappy Bird)
+		// Persist best time to localStorage
 		try {
 			localStorage.setItem( "anime-runner-best", String( highScore ) );
 		}
@@ -1340,7 +1340,7 @@ scene( "gameover", ( score, deathPos ) => {
 
 	// ── Score ──
 	add( [
-		  text( `Score: ${ Math.floor( score ) }`, { size: 30 } )
+		  text( `Time: ${ survivedTime.toFixed( 2 ) }s`, { size: 30 } )
 		, anchor( "center" )
 		, pos( width() / 2, height() / 2 + 10 )
 		, color( white[ 0 ], white[ 1 ], white[ 2 ] )
@@ -1349,11 +1349,11 @@ scene( "gameover", ( score, deathPos ) => {
 	] );
 
 	// ── Best (gold if new record) ──
-	const isNewRecord = score >= highScore;
+	const isNewRecord = survivedTime >= highScore;
 	const hsColor     = isNewRecord ? scoreGold : textGrey;
 
 	add( [
-		  text( `Best: ${ Math.floor( highScore ) }`, { size: 30 } )
+		  text( `Best: ${ highScore.toFixed( 2 ) }s`, { size: 30 } )
 		, anchor( "center" )
 		, pos( width() / 2, height() / 2 + 55 )
 		, color( hsColor[ 0 ], hsColor[ 1 ], hsColor[ 2 ] )
@@ -1371,7 +1371,7 @@ scene( "gameover", ( score, deathPos ) => {
 
 } );
 
-// ── Load persisted best score from localStorage ──
+// ── Load persisted best time from localStorage ──
 try {
 	const saved = localStorage.getItem( "anime-runner-best" );
 
