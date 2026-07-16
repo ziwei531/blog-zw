@@ -16,6 +16,7 @@ export default {
 			url: "/game-corner/",
 			children: [
 				{ label: "Flappy Bird", url: "/game-corner/flappy-bird/" },
+				{ label: "Anime Runner", url: "/game-corner/anime-runner/" },
 			],
 		},
 	],

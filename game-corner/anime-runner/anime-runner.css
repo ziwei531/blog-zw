@@ -1,0 +1,48 @@
+/* ==============================================
+   Anime Runner — Game page layout (isolated)
+   Every rule scoped under .anime-runner-page so no
+   styles leak to the main site's style.css.
+   ============================================== */
+
+/* ── Overrides for main content area ── */
+.anime-runner-page main {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0;
+	overflow: hidden;
+}
+
+/* ── Canvas wrapper ── */
+.anime-runner-page .game-wrapper {
+	width: 100%;
+	max-width: min( 95vw, calc( 90vh * 800 / 450 ) );
+	aspect-ratio: 800 / 450;
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.anime-runner-page .game-wrapper canvas {
+	width: 100%;
+	height: 100%;
+	display: block;
+}
+
+/* ── Narrow screens ── */
+@media ( max-width: 600px ) {
+	.anime-runner-page .game-wrapper {
+		max-width: 100vw;
+	}
+}
+
+/* ── Short viewports ── */
+@media ( max-height: 500px ) {
+	.anime-runner-page .game-wrapper {
+		max-width: min( 98vw, calc( 95vh * 800 / 450 ) );
+	}
+}
+
+/* ── Reduced motion: ignore (game runs at its own frame rate) ── */

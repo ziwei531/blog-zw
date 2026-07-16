@@ -79,4 +79,10 @@ function _configureEleventyPassthroughs( eleventyConfig ) {
 	eleventyConfig.addPassthroughCopy( {
 		"game-corner/flappy-bird/js": "game-corner/flappy-bird/js",
 	} );
+	eleventyConfig.addPassthroughCopy( {
+		"game-corner/anime-runner/anime-runner.css": "game-corner/anime-runner/anime-runner.css",
+	} );
+	eleventyConfig.addPassthroughCopy( {
+		"game-corner/anime-runner/js": "game-corner/anime-runner/js",
+	} );
 }
