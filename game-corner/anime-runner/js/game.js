@@ -1,14 +1,10 @@
-// Pixel Anime Runner — side-scrolling auto-runner
-// Inspired by Google's T-Rex Runner, drawn with Kaplay primitives.
-// No external sprite assets — all pixel art is primitive shapes.
-
 import kaplay from "https://unpkg.com/kaplay@3001/dist/kaplay.mjs";
 
 kaplay( {
 	  canvas     : document.getElementById( "game" )
 	, width      : 800
 	, height     : 450
-	, background : [ 155, 215, 242 ]
+	, background : [ 250, 135, 75 ]
 	, crisp      : true
 	, stretch    : true
 	, letterbox  : true
@@ -16,14 +12,21 @@ kaplay( {
 
 // ── Gameplay constants ──
 const gravity           = 1800;
-const jumpForce         = 580;
+const jumpForce         = 500;
 const duckHeight        = 18;
 const mikaFullHeight    = 32;
 const groundHeight      = 48;
 const baseSpeed         = 350;
 const maxSpeed          = 700;
 const speedRampDuration = 90;
-const dayCycleDuration  = 60;
+
+// ── Jump feel constants ──
+const coyoteTime        = 0.08;   // tiny grace period after running off ground
+const jumpBuffer        = 0.08;   // jump pressed just before landing still registers
+const jumpCutMultiplier = 1.0;    // releasing jump no longer shortens the arc
+const jumpSquash        = 0.80;   // vertical squash on takeoff
+const landSquash        = 1.15;   // vertical squash on landing
+const poseSmoothSpeed   = 14;     // how fast the character rotates into poses
 
 // ── Difficulty progression ──
 // Obstacles get harder as elapsed time grows, but a grace period keeps the
@@ -39,21 +42,34 @@ const ribbon     = [ 255, 107, 157 ];
 const gold       = [ 255, 215,   0 ];
 const shoes      = [ 255, 107, 157 ];
 
-const crystalDark      = [  59,  30,  92 ];
-const crystalHighlight = [ 122,  79, 204 ];
+const crystalDark      = [  20, 180, 165 ];   // bright teal (pops against warm sunset)
+const crystalHighlight = [  90, 235, 225 ];   // lighter cyan highlight
 
 const groundColor = [ 139, 201, 122 ];
 const grassTuft   = [  95, 168,  90 ];
 const groundLine  = [  63, 126,  63 ];
 
-const skyDawn   = [ 255, 183, 197 ];
-const skyDay    = [ 155, 215, 242 ];
-const skyDusk   = [ 255, 154, 107 ];
-const skyNight  = [  27,  36,  71 ];
+// ── Sunset sky gradient stops (top → horizon) ──
+const skyTop     = [  40,  18,  60 ];   // deep indigo-purple
+const skyUpper   = [ 110,  40,  95 ];   // rich plum
+const skyMid     = [ 210,  75, 110 ];   // pink-magenta
+const skyLower   = [ 250, 135,  75 ];   // warm orange
+const skyHorizon = [ 255, 195, 105 ];   // golden yellow
 
-const starColor = [ 255, 255, 255 ];
-const sunColor  = [ 255, 224, 138 ];
-const moonColor = [ 240, 240, 255 ];
+// ── Sun glow layers ──
+const sunColor  = [ 255, 228, 145 ];   // bright core
+const sunGlow   = [ 255, 175,  80 ];   // mid glow
+const sunOuter  = [ 255, 135,  60 ];   // outer halo
+
+// ── Cloud tints ──
+const cloudFar  = [ 200, 115, 140 ];   // distant warm pink
+const cloudMid  = [ 235, 150, 125 ];   // middle peach
+const cloudNear = [ 250, 180, 130 ];   // near warm cream
+
+// ── Mountain silhouettes (dark against bright sky) ──
+const mountFar  = [  85,  45,  75 ];   // far (lightest)
+const mountMid  = [  60,  30,  55 ];   // mid
+const mountNear = [  40,  18,  40 ];   // near (darkest)
 
 const white     = [ 255, 255, 255 ];
 const black     = [  26,  26,  26 ];
@@ -67,6 +83,7 @@ let worldSpeed     = baseSpeed;
 let score          = 0;
 let elapsed        = 0;
 let gameOver       = false;
+let paused         = false;
 
 // ─────────────────────────────────────────────
 //  Helpers
@@ -78,16 +95,6 @@ function lerpColor( c1, c2, t ) {
 		, Math.round( c1[ 1 ] + ( c2[ 1 ] - c1[ 1 ] ) * t )
 		, Math.round( c1[ 2 ] + ( c2[ 2 ] - c1[ 2 ] ) * t )
 	];
-}
-
-function getSkyColor( t ) {
-	// t = 0..1, phases at 0, 1/3, 2/3, 1
-	const phases = [ skyDawn, skyDay, skyDusk, skyNight ];
-	const seg    = 1 / 3;
-	const idx    = Math.min( Math.floor( t / seg ), 2 );
-	const local  = ( t - idx * seg ) / seg;
-
-	return lerpColor( phases[ idx ], phases[ idx + 1 ], local );
 }
 
 // ── Difficulty curve ──
@@ -128,7 +135,7 @@ function spawnSparkle( posX, posY ) {
 // ─────────────────────────────────────────────
 //  buildMika — character factory
 // ─────────────────────────────────────────────
-function buildMika( withPhysics ) {
+function buildMika( withPhysics, parent = null ) {
 
 	const components = [
 		  pos( 0, 0 )
@@ -149,7 +156,7 @@ function buildMika( withPhysics ) {
 		components.push( area() );
 	}
 
-	const mika = add( components );
+	const mika = parent ? parent.add( components ) : add( components );
 
 	// ── Twintails ──
 	mika.add( [
@@ -322,55 +329,134 @@ const mikaFullWidth = 24;
 // ─────────────────────────────────────────────
 //  Parallax background factory
 // ─────────────────────────────────────────────
-function buildParallax() {
+function buildParallax( parent = null ) {
 
+	const addTo = parent ? ( c ) => parent.add( c ) : add;
 	const layers = [];
 
-	// ── Sky (fixed, no scroll) ──
-	const skyRect = add( [
-		  rect( width(), height() )
-		, pos( 0, 0 )
-		, color( skyDay[ 0 ], skyDay[ 1 ], skyDay[ 2 ] )
-		, fixed()
-		, z( -100 )
-	] );
+	// ── Sky gradient (top → bottom: deep purple → golden horizon) ──
+	const numStrips = 16;
+	const stripH    = Math.ceil( height() / numStrips );
 
-	// ── Sun ──
-	const sun = add( [
-		  circle( 18 )
-		, color( sunColor[ 0 ], sunColor[ 1 ], sunColor[ 2 ] )
-		, pos( -40, 40 )
+	const gradientStops = [
+		  { pos: 0.0,  color: skyTop     }   // deep indigo-purple
+		, { pos: 0.28, color: skyUpper   }   // rich plum
+		, { pos: 0.55, color: skyMid     }   // pink-magenta
+		, { pos: 0.78, color: skyLower   }   // warm orange
+		, { pos: 1.0,  color: skyHorizon }   // golden yellow
+	];
+
+	for ( let i = 0; i < numStrips; i++ ) {
+		const t = i / ( numStrips - 1 );
+
+		// Find bracketing stops
+		let si = 0;
+		for ( let j = 0; j < gradientStops.length - 1; j++ ) {
+			if ( t >= gradientStops[ j ].pos && t <= gradientStops[ j + 1 ].pos ) {
+				si = j;
+				break;
+			}
+		}
+		const localT = ( t - gradientStops[ si ].pos )
+		             / ( gradientStops[ si + 1 ].pos - gradientStops[ si ].pos );
+		const col = lerpColor( gradientStops[ si ].color, gradientStops[ si + 1 ].color, localT );
+
+		addTo( [
+			  rect( width(), stripH + 1 )
+			, pos( 0, i * stripH )
+			, color( col[ 0 ], col[ 1 ], col[ 2 ] )
+			, fixed()
+			, z( -100 )
+		] );
+	}
+
+	// ── Sun (warm glowing sunset sun with 3-layer halo) ──
+	const sunX     = width() * 0.72;
+	const sunY     = height() * 0.52;
+	const sunGroup = addTo( [
+		  pos( sunX, sunY )
 		, anchor( "center" )
 		, fixed()
-		, z( -90 )
+		, z( -85 )
+	] );
+
+	// Outer halo (largest, most transparent)
+	sunGroup.add( [
+		  circle( 52 )
+		, color( sunOuter[ 0 ], sunOuter[ 1 ], sunOuter[ 2 ] )
+		, anchor( "center" )
+		, opacity( 0.12 )
+	] );
+	sunGroup.add( [
+		  circle( 36 )
+		, color( sunOuter[ 0 ], sunOuter[ 1 ], sunOuter[ 2 ] )
+		, anchor( "center" )
+		, opacity( 0.22 )
+	] );
+
+	// Mid glow
+	sunGroup.add( [
+		  circle( 24 )
+		, color( sunGlow[ 0 ], sunGlow[ 1 ], sunGlow[ 2 ] )
+		, anchor( "center" )
+		, opacity( 0.45 )
+	] );
+
+	// Bright core
+	sunGroup.add( [
+		  circle( 16 )
+		, color( sunColor[ 0 ], sunColor[ 1 ], sunColor[ 2 ] )
+		, anchor( "center" )
 		, opacity( 1 )
 	] );
 
-	// ── Moon ──
-	const moon = add( [
-		  circle( 14 )
-		, color( moonColor[ 0 ], moonColor[ 1 ], moonColor[ 2 ] )
-		, pos( -40, 40 )
-		, anchor( "center" )
-		, fixed()
-		, z( -90 )
-		, opacity( 0 )
-	] );
+	// ── Cloud layer factory ──
+	function makeCloudLayer( count, yMin, yMax, scrollRate, tint, alpha, zLayer ) {
+		const clouds = [];
 
-	// ── Stars (30 tiny circles, initially invisible) ──
-	const stars = [];
-	for ( let i = 0; i < 30; i++ ) {
-		const s = add( [
-			  circle( 1.5 )
-			, color( 255, 255, 255 )
-			, pos( rand( 0, width() ), rand( 0, height() * 0.4 ) )
-			, anchor( "center" )
-			, fixed()
-			, z( -95 )
-			, opacity( 0 )
-		] );
-		stars.push( s );
+		for ( let i = 0; i < count; i++ ) {
+			const cx    = rand( 0, width() );
+			const cy    = rand( yMin, yMax );
+			const scale = rand( 0.7, 1.3 );
+
+			const cloud = addTo( [
+				  pos( cx, cy )
+				, anchor( "center" )
+				, fixed()
+				, z( zLayer )
+				, opacity( alpha )
+			] );
+
+			// Cloud puffs — overlapping circles for fluffy look
+			const puffs = [
+				  [ 0  , 0 , 16 ]
+				, [ -18, 5, 12  ]
+				, [ 16 , 4, 13  ]
+				, [ -8 , -6, 11 ]
+				, [ 9  , -5, 11 ]
+			];
+
+			puffs.forEach( ( [ px, py, pr ] ) => {
+				cloud.add( [
+					  circle( pr * scale )
+					, pos( px * scale, py * scale )
+					, color( tint[ 0 ], tint[ 1 ], tint[ 2 ] )
+					, anchor( "center" )
+				] );
+			} );
+
+			clouds.push( cloud );
+		}
+
+		layers.push( { tiles: clouds, scrollRate, totalW: width() * 1.8 } );
+
+		return clouds;
 	}
+
+	// ── Cloud layers (back → front, each slower than the ground) ──
+	makeCloudLayer( 5, 30, 120, 0.08, cloudFar,  0.55, -75 );
+	makeCloudLayer( 4, 60, 170, 0.15, cloudMid,  0.65, -70 );
+	makeCloudLayer( 3, 90, 200, 0.22, cloudNear, 0.60, -65 );
 
 	// ── Helper: create a scrolling tile layer ──
 	function makeTileLayer( tileCount, tileColor, tileHeight, scrollRate, yBase ) {
@@ -378,7 +464,7 @@ function buildParallax() {
 		const tileW  = width() / tileCount;
 
 		for ( let i = 0; i < tileCount; i++ ) {
-			const t = add( [
+			const t = addTo( [
 				  rect( tileW, tileHeight )
 				, color( tileColor[ 0 ], tileColor[ 1 ], tileColor[ 2 ] )
 				, pos( i * tileW, yBase )
@@ -393,72 +479,154 @@ function buildParallax() {
 		return tiles;
 	}
 
-	// ── Mountains (3 layers, slow scroll) ──
+	// ── Mountains (3 layers of silhouette hills, warm dark purples) ──
 	makeTileLayer(
 		  3
-		, [ 100, 160, 130 ]
+		, mountFar
 		, 120
 		, 0.25
 		, height() - groundHeight - 120
 	);
 	makeTileLayer(
 		  4
-		, [  80, 140, 110 ]
+		, mountMid
 		, 100
 		, 0.40
 		, height() - groundHeight - 100
 	);
 	makeTileLayer(
 		  5
-		, [  60, 120,  90 ]
+		, mountNear
 		, 80
 		, 0.55
 		, height() - groundHeight - 80
 	);
 
-	// ── Sakura trees (mid scroll) ──
+	// ── Sakura trees (blossom-filled canopy with visible trunk) ──
 	function makeTreeLayer() {
 		const trees = [];
 		const count = 6;
 		const spacing = width() / count;
 
 		for ( let i = 0; i < count; i++ ) {
-			const trunkH = rand( 30, 50 );
-			const trunkW = 6;
-			const y = height() - groundHeight;
+			const trunkH    = rand( 36, 56 );
+			const trunkW    = rand( 4, 7 );
+			const canopyR   = rand( 18, 26 );
+			const y         = height() - groundHeight;
 
 			// Parent container for trunk + canopy
-			const tree = add( [
+			const tree = addTo( [
 				  rect( 1, 1 )
-				, pos( i * spacing, y )
+				, pos( i * spacing + rand( -8, 8 ), y )
 				, opacity( 0 )
-				, fixed()
 				, z( -8 )
 			] );
 
-			// Trunk (brown)
+			// ── Trunk ──
+			// Main trunk (dark brown, slight warm tint from sunset)
 			tree.add( [
 				  rect( trunkW, trunkH )
-				, color( 120, 80, 50 )
+				, color( 90, 45, 30 )
 				, pos( 0, -trunkH / 2 )
 				, anchor( "center" )
 			] );
 
-			// Canopy (pink circle)
+			// Trunk highlight (light edge catching sunset glow)
 			tree.add( [
-				  circle( 12 )
-				, color( 255, 180, 200 )
-				, pos( 0, -trunkH - 2 )
+				  rect( Math.max( 2, trunkW - 3 ), trunkH - 6 )
+				, color( 120, 65, 45 )
+				, pos( 0, -trunkH / 2 )
 				, anchor( "center" )
 			] );
 
-			// Highlight on canopy
+			// ── Branch (small, angled hint) ──
 			tree.add( [
-				  circle( 6 )
-				, color( 255, 210, 220 )
-				, pos( 3, -trunkH - 6 )
+				  rect( Math.min( trunkW + 2, 8 ), 3 )
+				, color( 90, 45, 30 )
+				, pos( -3, -trunkH + 6 )
+				, anchor( "center" )
+				, rotate( -25 )
+			] );
+			tree.add( [
+				  rect( Math.min( trunkW + 2, 8 ), 3 )
+				, color( 90, 45, 30 )
+				, pos( 3, -trunkH + 10 )
+				, anchor( "center" )
+				, rotate( 25 )
+			] );
+
+			// ── Canopy (cluster of overlapping pink circles = blossom cloud) ──
+			const canopyY = -trunkH - canopyR * 0.3;
+
+			// Bottom layer (darker pink, larger spread)
+			tree.add( [
+				  circle( canopyR * 0.7 )
+				, color( 230, 120, 145 )
+				, pos( -canopyR * 0.35, canopyY + 6 )
 				, anchor( "center" )
 			] );
+			tree.add( [
+				  circle( canopyR * 0.7 )
+				, color( 230, 120, 145 )
+				, pos(  canopyR * 0.35, canopyY + 6 )
+				, anchor( "center" )
+			] );
+
+			// Middle layer (main pink, largest)
+			tree.add( [
+				  circle( canopyR * 0.65 )
+				, color( 245, 150, 170 )
+				, pos( -canopyR * 0.25, canopyY - 2 )
+				, anchor( "center" )
+			] );
+			tree.add( [
+				  circle( canopyR * 0.65 )
+				, color( 245, 150, 170 )
+				, pos(  canopyR * 0.25, canopyY - 2 )
+				, anchor( "center" )
+			] );
+			tree.add( [
+				  circle( canopyR * 0.6 )
+				, color( 245, 150, 170 )
+				, pos( 0, canopyY + 2 )
+				, anchor( "center" )
+			] );
+
+			// Top layer (light pink highlights)
+			tree.add( [
+				  circle( canopyR * 0.45 )
+				, color( 255, 175, 190 )
+				, pos( -canopyR * 0.15, canopyY - 6 )
+				, anchor( "center" )
+			] );
+			tree.add( [
+				  circle( canopyR * 0.4 )
+				, color( 255, 175, 190 )
+				, pos(  canopyR * 0.15, canopyY - 4 )
+				, anchor( "center" )
+			] );
+
+			// Peak highlight
+			tree.add( [
+				  circle( canopyR * 0.25 )
+				, color( 255, 195, 205 )
+				, pos( 0, canopyY - 9 )
+				, anchor( "center" )
+			] );
+
+			// ── A few tiny scattered petals around the tree ──
+			for ( let p = 0; p < 4; p++ ) {
+				const px = rand( -canopyR, canopyR );
+				const py = canopyY + rand( -canopyR * 0.5, canopyR * 0.3 );
+
+				tree.add( [
+					  circle( rand( 1.5, 2.5 ) )
+					, color( 255, 185, 195 )
+					, pos( px, py )
+					, anchor( "center" )
+					, opacity( rand( 0.4, 0.7 ) )
+				] );
+			}
 
 			trees.push( tree );
 		}
@@ -485,7 +653,7 @@ function buildParallax() {
 	// Grass tufts (small intermittent rects on top of ground)
 	const tufts = [];
 	for ( let i = 0; i < 20; i++ ) {
-		const t = add( [
+		const t = addTo( [
 			  rect( rand( 3, 6 ), rand( 3, 6 ) )
 			, color( grassTuft[ 0 ], grassTuft[ 1 ], grassTuft[ 2 ] )
 			, pos( rand( 0, width() ), groundY + rand( 0, 4 ) )
@@ -515,7 +683,13 @@ function buildParallax() {
 		} );
 	} );
 
-	return { skyRect, sun, moon, stars };
+	// Subtle sun glow pulse
+	sunGroup.onUpdate( () => {
+		const pulse = 1 + Math.sin( time() * 0.8 ) * 0.03;
+		sunGroup.scale = vec2( pulse, pulse );
+	} );
+
+	return { sunGroup };
 
 }
 
@@ -523,8 +697,13 @@ function buildParallax() {
 //  Obstacle spawners
 // ─────────────────────────────────────────────
 
-function spawnCrystal() {
+function spawnCrystal( parent = null ) {
 
+	if ( paused || gameOver ) {
+		return;
+	}
+
+	const addTo        = parent ? ( c ) => parent.add( c ) : add;
 	const diff         = getDifficulty();
 	const doubleChance = 0.25 + diff * 0.35;   // 25% early → 60% late
 	const isDouble     = rand( 0, 1 ) < doubleChance;
@@ -534,18 +713,18 @@ function spawnCrystal() {
 	const x        = width() + 20;
 	const y        = groundY - h / 2;
 
-	const parent = add( [
+	const container = addTo( [
 		  pos( x, y )
 		, offscreen( { destroy: true } )
 		, z( 5 )
 	] );
 
-	parent.onUpdate( () => {
-		parent.pos.x -= worldSpeed * dt();
+	container.onUpdate( () => {
+		container.pos.x -= worldSpeed * dt();
 	} );
 
 	// Main crystal body
-	const body = parent.add( [
+	const body = container.add( [
 		  rect( w, h )
 		, color( crystalDark[ 0 ], crystalDark[ 1 ], crystalDark[ 2 ] )
 		, outline( 1 )
@@ -555,7 +734,7 @@ function spawnCrystal() {
 	] );
 
 	// Highlight stripe
-	parent.add( [
+	container.add( [
 		  rect( w - 8, 4 )
 		, color(
 			  crystalHighlight[ 0 ]
@@ -567,7 +746,7 @@ function spawnCrystal() {
 	] );
 
 	// Sparkle on spawn
-	spawnSparkle( parent.pos.x, parent.pos.y );
+	spawnSparkle( container.pos.x, container.pos.y );
 
 }
 
@@ -577,7 +756,7 @@ function spawnCrystal() {
 // ─────────────────────────────────────────────
 let crystalSpawner = null;
 
-function scheduleCrystalSpawn() {
+function scheduleCrystalSpawn( parent = null ) {
 	if ( gameOver ) {
 		return;
 	}
@@ -592,19 +771,25 @@ function scheduleCrystalSpawn() {
 			return;
 		}
 
-		spawnCrystal();
+		if ( paused ) {
+			// Skip this spawn and reschedule once the game resumes
+			scheduleCrystalSpawn();
+			return;
+		}
+
+		spawnCrystal( parent );
 
 		// Occasionally spawn a trailing cluster crystal once difficulty is
 		// high enough. Never fires during the early grace period.
 		if ( rand( 0, 1 ) < diff * 0.25 ) {
 			wait( rand( 0.55, 0.85 ), () => {
-				if ( !gameOver ) {
-					spawnCrystal();
+				if ( !gameOver && !paused ) {
+					spawnCrystal( parent );
 				}
 			} );
 		}
 
-		scheduleCrystalSpawn();
+		scheduleCrystalSpawn( parent );
 	} );
 }
 
@@ -615,9 +800,8 @@ scene( "menu", () => {
 
 	gameOver = false;
 
-	// Background
-	const para = buildParallax();
-	para.skyRect.color = color( skyDawn[ 0 ], skyDawn[ 1 ], skyDawn[ 2 ] );
+	// Background (sunset gradient + clouds + mountains)
+	buildParallax();
 
 	// Title
 	add( [
@@ -653,6 +837,9 @@ scene( "menu", () => {
 	onKeyPress( "space", () => go( "game" ) );
 	onClick( () => go( "game" ) );
 
+	// Clean up any leftover paused state from a previous run
+	paused = false;
+
 } );
 
 // ─────────────────────────────────────────────
@@ -664,15 +851,19 @@ scene( "game", () => {
 	score     = 0;
 	elapsed   = 0;
 	gameOver  = false;
+	paused    = false;
 	worldSpeed = baseSpeed;
 
 	const groundY = height() - groundHeight;
 
+	// ── Gameplay container (pausing this freezes all children) ──
+	const world = add( [] );
+
 	// ── Parallax background ──
-	const para = buildParallax();
+	const para = buildParallax( world );
 
 	// ── Ground (visual only — Mika's ground detection is manual via position check) ──
-	const ground = add( [
+	const ground = world.add( [
 		  rect( width(), groundHeight )
 		, pos( 0, groundY )
 		, color( groundColor[ 0 ], groundColor[ 1 ], groundColor[ 2 ] )
@@ -681,15 +872,23 @@ scene( "game", () => {
 	] );
 
 	// ── Mika ──
-	const mika = buildMika( true );
+	const mika = buildMika( true, world );
 	mika.pos = vec2( 120, groundY - mikaFullHeight / 2 );
 
 	let lastTap = 0;
 
+	// ── Jump feel state (coyote time, buffered input, pose smoothing) ──
+	let coyoteTimer     = 0;
+	let jumpBufferTimer = 0;
+	let jumpHeld        = false;
+	let targetAngle     = 0;
+	let currentSquashY  = 1;
+	let wasGrounded     = true;
+
 	// ── Run animation: alternate legs at 8 Hz ──
 	let legToggle = true;
 	const runAnim = loop( 0.125, () => {
-		if ( mika.ducked || mika.jumpPose || gameOver ) {
+		if ( mika.ducked || mika.jumpPose || gameOver || paused ) {
 			return;
 		}
 
@@ -705,31 +904,126 @@ scene( "game", () => {
 		}
 	} );
 
+	// ── Pause overlay (initially hidden) ──
+	const pauseOverlay = add( [
+		  rect( width(), height() )
+		, pos( 0, 0 )
+		, color( 0, 0, 0 )
+		, fixed()
+		, z( 250 )
+		, opacity( 0 )
+	] );
+
+	const pauseLabel = add( [
+		  text( "PAUSED", { size: 48 } )
+		, anchor( "center" )
+		, pos( width() / 2, height() / 2 - 20 )
+		, color( white[ 0 ], white[ 1 ], white[ 2 ] )
+		, fixed()
+		, z( 251 )
+		, opacity( 0 )
+	] );
+
+	const pauseHint = add( [
+		  text( "Press P or ESC to Resume", { size: 18 } )
+		, anchor( "center" )
+		, pos( width() / 2, height() / 2 + 35 )
+		, color( textGrey[ 0 ], textGrey[ 1 ], textGrey[ 2 ] )
+		, fixed()
+		, z( 251 )
+		, opacity( 0 )
+	] );
+
+	function setPaused( isPaused ) {
+		paused = isPaused;
+
+			// Pause all gameplay objects by pausing their parent container.
+		// The overlay lives on the root so it can still render.
+		world.paused = paused;
+
+		if ( paused ) {
+			pauseOverlay.opacity = 0.5;
+			pauseLabel.opacity   = 1;
+			pauseHint.opacity    = 1;
+		}
+		else {
+			pauseOverlay.opacity = 0;
+			pauseLabel.opacity   = 0;
+			pauseHint.opacity    = 0;
+		}
+	}
+
+	function togglePause() {
+		setPaused( !paused );
+	}
+
 	// ── Input: jump ──
-	onKeyPress( "space", () => {
-		if ( !gameOver && mika.grounded && !mika.ducked ) {
-			mika.velY     = -jumpForce;
-			mika.grounded = false;
-			mika.jumpPose = true;
+	function tryJump() {
+		if ( gameOver || paused || mika.ducked ) {
+			return;
+		}
+
+		if ( mika.grounded || coyoteTimer > 0 ) {
+			mika.velY      = -jumpForce;
+			mika.grounded  = false;
+			mika.jumpPose  = true;
+			jumpHeld       = true;
+			targetAngle    = -10;
+			currentSquashY = jumpSquash;
 			setJumpPose( mika, true );
+			spawnSparkle( mika.pos.x - 8, mika.pos.y + 10 );
+		}
+		else {
+			jumpBufferTimer = jumpBuffer;
+		}
+	}
+
+	function releaseJump() {
+		jumpHeld = false;
+
+		// Variable jump height: releasing early shortens the upward arc
+		if ( mika.velY < 0 ) {
+			mika.velY *= jumpCutMultiplier;
+		}
+	}
+
+	// Jump / tap on space — global so it works from anywhere on the canvas.
+	// Inputs are registered globally but guarded with the paused / gameOver
+	// checks inside tryJump() so they behave correctly when paused.
+	onKeyPress( "space", () => {
+		if ( !gameOver ) {
+			tryJump();
 		}
 	} );
+
+	onKeyRelease( "space", () => releaseJump() );
 
 	onTouchStart( () => {
 		const now = time();
 
-		if ( now - lastTap > 0.3 && !gameOver && mika.grounded && !mika.ducked ) {
+		if ( now - lastTap > 0.3 && !gameOver ) {
 			lastTap = now;
-			mika.velY     = -jumpForce;
-			mika.grounded = false;
-			mika.jumpPose = true;
-			setJumpPose( mika, true );
+			tryJump();
 		}
 	} );
 
+	onTouchEnd( () => releaseJump() );
+
+	// Mouse click works as a tap so the game is playable on desktop too.
+	onClick( () => {
+		const now = time();
+
+		if ( now - lastTap > 0.3 && !gameOver ) {
+			lastTap = now;
+			tryJump();
+		}
+	} );
+
+	onMouseRelease( () => releaseJump() );
+
 	// ── Input: duck ──
-	onKeyDown( "down", () => {
-		if ( gameOver || mika.jumpPose ) {
+	mika.onKeyDown( "down", () => {
+		if ( gameOver || paused || mika.jumpPose ) {
 			return;
 		}
 
@@ -737,14 +1031,18 @@ scene( "game", () => {
 		setDuckPose( mika, true );
 	} );
 
-	onKeyRelease( "down", () => {
+	mika.onKeyRelease( "down", () => {
 		mika.ducked = false;
 		setDuckPose( mika, false );
 	} );
 
-	// ── Score display ──
-	const scoreLabel = add( [
-		  text( "00000" )
+	// ── Input: pause ──
+	onKeyPress( "p", () => togglePause() );
+	onKeyPress( "escape", () => togglePause() );
+
+	// ── Time display (center) ──
+	const timeLabel = world.add( [
+		  text( "0.00s" )
 		, anchor( "center" )
 		, pos( width() / 2, 30 )
 		, fixed()
@@ -754,7 +1052,7 @@ scene( "game", () => {
 	] );
 
 	// ── Obstacle spawners ──
-	scheduleCrystalSpawn();
+	scheduleCrystalSpawn( world );
 
 	// ── Hands-free run logic + scoring ──
 	mika.onUpdate( () => {
@@ -768,9 +1066,8 @@ scene( "game", () => {
 		const t     = Math.min( elapsed / speedRampDuration, 1 );
 		worldSpeed  = baseSpeed + t * ( maxSpeed - baseSpeed );
 
-		// Distance-based score
-		score      += worldSpeed * dt() * 0.02;
-		scoreLabel.text = String( Math.floor( score ) ).padStart( 5, "0" );
+		// Time display: 0.00s with two decimal places
+		timeLabel.text = `${ elapsed.toFixed( 2 ) }s`;
 
 		// Manual gravity (no body() — fully controlled)
 		mika.velY   += gravity * dt();
@@ -782,52 +1079,50 @@ scene( "game", () => {
 		if ( mika.pos.y >= floorY ) {
 			mika.pos.y    = floorY;
 			mika.velY     = 0;
+
+			// Landing squash when coming down from a real jump
+			if ( !mika.grounded && !wasGrounded ) {
+				currentSquashY = landSquash;
+			}
+
 			mika.grounded = true;
+			coyoteTimer   = 0;
 
 			if ( mika.jumpPose ) {
 				mika.jumpPose = false;
 				setJumpPose( mika, false );
+				targetAngle = 0;
+			}
+
+			// Buffered jump is consumed immediately on landing
+			if ( jumpBufferTimer > 0 ) {
+				jumpBufferTimer = 0;
+				tryJump();
 			}
 		}
 		else {
 			mika.grounded = false;
+
+			// Coyote timer: you can still jump briefly after leaving ground
+			if ( wasGrounded && !mika.jumpPose ) {
+				coyoteTimer = coyoteTime;
+			}
 		}
 
-		// ── Day/night cycle ──
-		const tod      = ( elapsed % dayCycleDuration ) / dayCycleDuration;
-		const skyCol   = getSkyColor( tod );
-
-		para.skyRect.color = color( skyCol[ 0 ], skyCol[ 1 ], skyCol[ 2 ] );
-
-		// Sun arc (visible first half of cycle)
-		const sunT = tod / 0.5;
-
-		if ( tod < 0.5 ) {
-			para.sun.opacity   = Math.min( 1, sunT * 2 );
-			para.moon.opacity  = 0;
-			para.sun.pos       = vec2(
-				  -40 + sunT * ( width() + 80 )
-				, 40 + Math.sin( sunT * Math.PI ) * 30
-			);
+		// Tick down timers
+		if ( coyoteTimer > 0 ) {
+			coyoteTimer -= dt();
 		}
-		else {
-			// Moon arc (visible second half)
-			const moonT = ( tod - 0.5 ) / 0.5;
-
-			para.sun.opacity    = 0;
-			para.moon.opacity   = Math.min( 1, moonT * 2 );
-			para.moon.pos       = vec2(
-				  -40 + moonT * ( width() + 80 )
-				, 40 + Math.sin( moonT * Math.PI ) * 30
-			);
+		if ( jumpBufferTimer > 0 ) {
+			jumpBufferTimer -= dt();
 		}
 
-		// Stars: fade in during night (tod 0.5..1.0)
-		const starAlpha = tod > 0.5 ? Math.min( 1, ( tod - 0.5 ) * 4 ) : 0;
+		wasGrounded = mika.grounded;
 
-		para.stars.forEach( ( s ) => {
-			s.opacity = starAlpha * rand( 0.5, 1 );
-		} );
+		// Smoothly interpolate angle and squash back to neutral
+		mika.angle     += ( targetAngle - mika.angle ) * poseSmoothSpeed * dt();
+		currentSquashY += ( 1 - currentSquashY ) * poseSmoothSpeed * dt();
+		mika.scale      = vec2( 1, currentSquashY );
 
 	} );
 
@@ -865,9 +1160,10 @@ function setJumpPose( mika, active ) {
 	const legA    = mika.get( "legA" );
 	const legB    = mika.get( "legB" );
 
-	if ( active ) {
-		mika.angle = -10;
+	// Note: rotation is now smoothed in the game loop via targetAngle,
+	// so this helper only toggles the visual tucked/running leg parts.
 
+	if ( active ) {
 		if ( tucked.length > 0 ) {
 			tucked[ 0 ].opacity = 1;
 		}
@@ -879,8 +1175,6 @@ function setJumpPose( mika, active ) {
 		}
 	}
 	else {
-		mika.angle = 0;
-
 		if ( tucked.length > 0 ) {
 			tucked[ 0 ].opacity = 0;
 		}
@@ -1071,6 +1365,8 @@ scene( "gameover", ( score, deathPos ) => {
 	setTimeout( () => {
 		onKeyPress( "space", () => go( "game" ) );
 		onTouchStart( () => go( "game" ) );
+		onClick( () => go( "game" ) );
+		onMousePress( () => go( "game" ) );
 	}, 400 );
 
 } );
