@@ -25,14 +25,22 @@
 	justify-content: center;
 }
 
+/* ── Mobile / narrow screens: switch to portrait aspect ── */
+@media ( max-width: 699px ), ( orientation: portrait ) and ( max-width: 799px ) {
+	.anime-runner-page .game-wrapper {
+		max-width: min( 95vw, calc( 90vh * 450 / 800 ) );
+		aspect-ratio: 450 / 800;
+	}
+}
+
 .anime-runner-page .game-wrapper canvas {
 	width: 100%;
 	height: 100%;
 	display: block;
 }
 
-/* ── Narrow screens ── */
-@media ( max-width: 600px ) {
+/* ── Extra narrow screens — use full width ── */
+@media ( max-width: 480px ) {
 	.anime-runner-page .game-wrapper {
 		max-width: 100vw;
 	}

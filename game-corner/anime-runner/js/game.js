@@ -1,9 +1,15 @@
 import kaplay from "https://unpkg.com/kaplay@3001/dist/kaplay.mjs";
 
+// ── Detect mobile / portrait orientation ──
+const isMobile = (
+	  typeof window !== "undefined"
+	&& ( window.innerWidth < 700 || ( window.innerHeight > window.innerWidth && window.innerWidth < 800 ) )
+);
+
 kaplay( {
 	  canvas     : document.getElementById( "game" )
-	, width      : 800
-	, height     : 450
+	, width      : isMobile ? 450 : 800
+	, height     : isMobile ? 800 : 450
 	, background : [ 250, 135, 75 ]
 	, crisp      : true
 	, stretch    : true
