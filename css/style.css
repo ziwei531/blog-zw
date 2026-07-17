@@ -289,6 +289,14 @@ a:hover {
   background: var(--color-accent-dim);
 }
 
+/* ── Active (touch toggle) ── */
+
+.nav-item.active > .nav-dropdown {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
 /* ==============================================
    Hero
    ============================================== */
