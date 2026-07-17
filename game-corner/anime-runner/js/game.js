@@ -1056,13 +1056,13 @@ scene( "game", () => {
 
 	// ── Time display (center) ──
 	const timeLabel = world.add( [
-		  text( "0.00s" )
+		  text( "0.00s", { size: 26 } )
 		, anchor( "center" )
-		, pos( width() / 2, 30 )
+		, pos( width() / 2, 55 )
 		, fixed()
 		, z( 100 )
-		, scale( 2 )
 		, color( white[ 0 ], white[ 1 ], white[ 2 ] )
+		, outline( 2 )
 	] );
 
 	// ── Obstacle spawners ──

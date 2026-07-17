@@ -13,10 +13,10 @@ kaplay( {
 	, letterbox  : true
 } );
 
-// adjust according to your preference. 
+// adjust according to your preference.
 setGravity( 2800 ); // original is 2800
 
-const jumpForce         = 720; // original is 720
+const jumpForce         = 600; // original is 720
 const pipeSpeed         = 250;
 const pipeGap           = 135;
 const pipeWidth         = 52;
@@ -77,34 +77,7 @@ function showOof( deathPos ) {
 // ─────────────────────────────────────────────
 scene( "menu", () => {
 
-	const groundY = height() - groundHeight;
-
-	// Sky background
-	add( [
-		  rect( width(), height() )
-		, pos( 0, 0 )
-		, color( sky[ 0 ], sky[ 1 ], sky[ 2 ] )
-		, fixed()
-		, z( -100 )
-	] );
-
-	// Ground
-	add( [
-		  rect( width(), groundHeight )
-		, pos( 0, groundY )
-		, color( groundColor[ 0 ], groundColor[ 1 ], groundColor[ 2 ] )
-		, fixed()
-		, z( -5 )
-	] );
-
-	// Grass strip
-	add( [
-		  rect( width(), 6 )
-		, pos( 0, groundY )
-		, color( grassColor[ 0 ], grassColor[ 1 ], grassColor[ 2 ] )
-		, fixed()
-		, z( -4 )
-	] );
+	_addBackground();
 
 	// Title
 	add( [
@@ -124,36 +97,7 @@ scene( "menu", () => {
 		, z( 10 )
 	] );
 
-	// Wing
-	menuBird.add( [
-		  rect( 12, 7, { radius: 3 } )
-		, color( wingColor[ 0 ], wingColor[ 1 ], wingColor[ 2 ] )
-		, pos( -2, -2 )
-	] );
-
-	// Eye
-	menuBird.add( [
-		  circle( 5 )
-		, color( white[ 0 ], white[ 1 ], white[ 2 ] )
-		, pos( 7, -6 )
-		, anchor( "center" )
-	] );
-
-	// Pupil
-	menuBird.add( [
-		  circle( 2 )
-		, color( black[ 0 ], black[ 1 ], black[ 2 ] )
-		, pos( 8, -6 )
-		, anchor( "center" )
-	] );
-
-	// Beak
-	menuBird.add( [
-		  rect( 9, 5, { radius: 1 } )
-		, color( beakColor[ 0 ], beakColor[ 1 ], beakColor[ 2 ] )
-		, pos( 20, 0 )
-		, anchor( "center" )
-	] );
+	_addBirdParts( menuBird );
 
 	// Gentle bobbing animation
 	menuBird.onUpdate( () => {
@@ -191,34 +135,14 @@ scene( "game", () => {
 
 	let score    = 0;
 	let gameOver = false;
+	let isPaused = false;
 
-	const groundY = height() - groundHeight;
+	const groundY = _addBackground();
 
-	// ── Sky background ──
-	add( [
-		  rect( width(), height() )
-		, pos( 0, 0 )
-		, color( sky[ 0 ], sky[ 1 ], sky[ 2 ] )
-		, fixed()
-		, z( -100 )
-	] );
-
-	// ── Ground (visual only — death handled via bounds check in bird.onUpdate) ──
-	add( [
-		  rect( width(), groundHeight )
-		, pos( 0, groundY )
-		, color( groundColor[ 0 ], groundColor[ 1 ], groundColor[ 2 ] )
-		, fixed()
-		, z( -5 )
-	] );
-
-	// Grass strip on top of ground
-	add( [
-		  rect( width(), 6 )
-		, pos( 0, groundY )
-		, color( grassColor[ 0 ], grassColor[ 1 ], grassColor[ 2 ] )
-		, fixed()
-		, z( -4 )
+	// ── Pausable root for the pipe spawner loop ──
+	const gameRoot = add( [
+		  timer()
+		, "pausable"
 	] );
 
 	// ── Bird ──
@@ -238,50 +162,70 @@ scene( "game", () => {
 		, rotate( 0 )
 		, z( 10 )
 		, "bird"
+		, "pausable"
 	] );
 
-	// Wing
-	bird.add( [
-		  rect( 12, 7, { radius: 3 } )
-		, color( wingColor[ 0 ], wingColor[ 1 ], wingColor[ 2 ] )
-		, pos( -2, -2 )
-	] );
+	_addBirdParts( bird );
 
-	// Eye (white circle)
-	bird.add( [
-		  circle( 5 )
-		, color( white[ 0 ], white[ 1 ], white[ 2 ] )
-		, pos( 7, -6 )
-		, anchor( "center" )
-	] );
+	const pauseUI = _addPauseUI();
 
-	// Pupil (black dot)
-	bird.add( [
-		  circle( 2 )
-		, color( black[ 0 ], black[ 1 ], black[ 2 ] )
-		, pos( 8, -6 )
-		, anchor( "center" )
-	] );
+	function togglePause() {
+		isPaused = !isPaused;
 
-	// Beak
-	bird.add( [
-		  rect( 9, 5, { radius: 1 } )
-		, color( beakColor[ 0 ], beakColor[ 1 ], beakColor[ 2 ] )
-		, pos( 20, 0 )
-		, anchor( "center" )
-	] );
+		get( "pausable" ).forEach( ( obj ) => {
+			obj.paused = isPaused;
+		} );
+
+		const { overlay, pausedText, resumeHint, pauseIcon } = pauseUI;
+
+		if ( isPaused ) {
+			overlay.opacity    = 0.55;
+			pausedText.opacity = 1;
+			resumeHint.opacity = 1;
+			pauseIcon.text     = "▶";
+		} else {
+			overlay.opacity    = 0;
+			pausedText.opacity = 0;
+			resumeHint.opacity = 0;
+			pauseIcon.text     = "II";
+		}
+	}
 
 	// ── Input: spacebar and click/tap both trigger a flap ──
 	onKeyPress( "space", () => {
-		if ( !gameOver ) {
+		if ( !isPaused && !gameOver ) {
 			bird.jump( jumpForce );
 		}
 	} );
 
+	onKeyPress( "p", togglePause );
+	onKeyPress( "escape", togglePause );
+
 	onClick( () => {
-		if ( !gameOver ) {
-			bird.jump( jumpForce );
+		if ( gameOver ) {
+			return;
 		}
+
+		const { pauseBtn, pauseBtnSize } = pauseUI;
+		const m         = mousePos();
+		const btnHalfW  = pauseBtnSize / 2;
+		const btnHalfH  = pauseBtnSize / 2;
+		const hitButton = m.x >= pauseBtn.pos.x - btnHalfW
+			&& m.x <= pauseBtn.pos.x + btnHalfW
+			&& m.y >= pauseBtn.pos.y - btnHalfH
+			&& m.y <= pauseBtn.pos.y + btnHalfH;
+
+		if ( hitButton ) {
+			togglePause();
+			return;
+		}
+
+		if ( isPaused ) {
+			togglePause();
+			return;
+		}
+
+		bird.jump( jumpForce );
 	} );
 
 	// ── Pipe spawning ──
@@ -307,6 +251,7 @@ scene( "game", () => {
 			, z( 5 )
 			, "pipe"
 			, { passed: false }
+			, "pausable"
 		] );
 
 		// Body (child — positioned 5 px inside the left cap overhang)
@@ -338,6 +283,7 @@ scene( "game", () => {
 			, offscreen( { destroy: true } )
 			, z( 5 )
 			, "pipe"
+			, "pausable"
 		] );
 
 		// Body (child)
@@ -375,7 +321,7 @@ scene( "game", () => {
 
 	// ── Collision: hitting any pipe ends the game ──
 	bird.onCollide( "pipe", () => {
-		if ( gameOver ) {
+		if ( isPaused || gameOver ) {
 			return;
 		}
 
@@ -387,6 +333,10 @@ scene( "game", () => {
 	// The parent container's pos.x is the left edge of the cap; the cap
 	// overhangs the body by 5 px on each side, so total width = pipeWidth + 10.
 	onUpdate( "pipe", ( p ) => {
+		if ( isPaused ) {
+			return;
+		}
+
 		if ( p.passed === false && p.pos.x + pipeWidth + 10 < bird.pos.x ) {
 			p.passed = true;
 			score++;
@@ -396,6 +346,10 @@ scene( "game", () => {
 
 	// ── Out-of-bounds / death ──
 	bird.onUpdate( () => {
+		if ( isPaused ) {
+			return;
+		}
+
 		if ( bird.pos.y >= groundY - 8 || bird.pos.y <= ceiling ) {
 			if ( !gameOver ) {
 				gameOver = true;
@@ -409,7 +363,7 @@ scene( "game", () => {
 	} );
 
 	// ── Pipe spawner: creates a new pair at regular intervals ──
-	loop( pipeSpawnInterval, () => {
+	gameRoot.loop( pipeSpawnInterval, () => {
 		spawnPipe();
 	} );
 
@@ -477,6 +431,128 @@ scene( "gameover", ( score, deathPos ) => {
 	}, 400 );
 
 } );
+
+// ── Scene helpers ──
+function _addBackground() {
+	const groundY = height() - groundHeight;
+
+	add( [
+		  rect( width(), height() )
+		, pos( 0, 0 )
+		, color( sky[ 0 ], sky[ 1 ], sky[ 2 ] )
+		, fixed()
+		, z( -100 )
+	] );
+
+	add( [
+		  rect( width(), groundHeight )
+		, pos( 0, groundY )
+		, color( groundColor[ 0 ], groundColor[ 1 ], groundColor[ 2 ] )
+		, fixed()
+		, z( -5 )
+	] );
+
+	add( [
+		  rect( width(), 6 )
+		, pos( 0, groundY )
+		, color( grassColor[ 0 ], grassColor[ 1 ], grassColor[ 2 ] )
+		, fixed()
+		, z( -4 )
+	] );
+
+	return groundY;
+}
+
+function _addBirdParts( parent ) {
+	// Wing
+	parent.add( [
+		  rect( 12, 7, { radius: 3 } )
+		, color( wingColor[ 0 ], wingColor[ 1 ], wingColor[ 2 ] )
+		, pos( -2, -2 )
+	] );
+
+	// Eye
+	parent.add( [
+		  circle( 5 )
+		, color( white[ 0 ], white[ 1 ], white[ 2 ] )
+		, pos( 7, -6 )
+		, anchor( "center" )
+	] );
+
+	// Pupil
+	parent.add( [
+		  circle( 2 )
+		, color( black[ 0 ], black[ 1 ], black[ 2 ] )
+		, pos( 8, -6 )
+		, anchor( "center" )
+	] );
+
+	// Beak
+	parent.add( [
+		  rect( 9, 5, { radius: 1 } )
+		, color( beakColor[ 0 ], beakColor[ 1 ], beakColor[ 2 ] )
+		, pos( 20, 0 )
+		, anchor( "center" )
+	] );
+}
+
+function _addPauseUI() {
+	const pauseBtnSize = 34;
+
+	const pauseBtn = add( [
+		  rect( pauseBtnSize, pauseBtnSize, { radius: 4 } )
+		, pos( width() - pauseBtnSize - 12, pauseBtnSize - 4 )
+		, color( 0, 0, 0 )
+		, opacity( 0.6 )
+		, anchor( "center" )
+		, fixed()
+		, z( 150 )
+	] );
+
+	const pauseIcon = pauseBtn.add( [
+		  text( "II", { size: 20 } )
+		, anchor( "center" )
+		, color( white[ 0 ], white[ 1 ], white[ 2 ] )
+	] );
+
+	const overlay = add( [
+		  rect( width(), height() )
+		, pos( 0, 0 )
+		, color( 0, 0, 0 )
+		, fixed()
+		, z( 120 )
+		, opacity( 0 )
+	] );
+
+	const pausedText = add( [
+		  text( "PAUSED", { size: 46 } )
+		, anchor( "center" )
+		, pos( width() / 2, height() / 2 - 30 )
+		, color( white[ 0 ], white[ 1 ], white[ 2 ] )
+		, fixed()
+		, z( 130 )
+		, opacity( 0 )
+	] );
+
+	const resumeHint = add( [
+		  text( "Tap anywhere to resume", { size: 16 } )
+		, anchor( "center" )
+		, pos( width() / 2, height() / 2 + 30 )
+		, color( lightGrey[ 0 ], lightGrey[ 1 ], lightGrey[ 2 ] )
+		, fixed()
+		, z( 130 )
+		, opacity( 0 )
+	] );
+
+	return {
+		  pauseBtn
+		, pauseBtnSize
+		, pauseIcon
+		, overlay
+		, pausedText
+		, resumeHint
+	};
+}
 
 // Kick off with the menu screen
 go( "menu" );
