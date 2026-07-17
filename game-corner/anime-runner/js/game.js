@@ -1,15 +1,23 @@
 import kaplay from "https://unpkg.com/kaplay@3001/dist/kaplay.mjs";
 
 // ── Detect mobile / portrait orientation ──
-const isMobile = (
+const isPortrait = (
 	  typeof window !== "undefined"
-	&& ( window.innerWidth < 700 || ( window.innerHeight > window.innerWidth && window.innerWidth < 800 ) )
+	&& window.innerHeight > window.innerWidth
+	&& window.innerWidth < 800
 );
+
+// Match the game's internal resolution to the screen's aspect ratio
+// in portrait so kaplay fills the canvas without letterboxing.
+const portraitW = 450;
+const portraitH = isPortrait
+	? Math.round( portraitW * ( window.innerHeight / window.innerWidth ) )
+	: 800;
 
 kaplay( {
 	  canvas     : document.getElementById( "game" )
-	, width      : isMobile ? 450 : 800
-	, height     : isMobile ? 800 : 450
+	, width      : isPortrait ? portraitW : 800
+	, height     : isPortrait ? portraitH : 450
 	, background : [ 250, 135, 75 ]
 	, crisp      : true
 	, stretch    : true

@@ -25,11 +25,16 @@
 	justify-content: center;
 }
 
-/* ── Mobile / narrow screens: switch to portrait aspect ── */
+/* ── Mobile / narrow screens: fill the available viewport ──
+   The game's internal resolution is computed in JS to match the
+   screen's actual aspect ratio, so kaplay fills the canvas without
+   letterboxing.  The wrapper simply stretches to fill `main`. */
 @media ( max-width: 699px ), ( orientation: portrait ) and ( max-width: 799px ) {
 	.anime-runner-page .game-wrapper {
-		max-width: min( 95vw, calc( 90vh * 450 / 800 ) );
-		aspect-ratio: 450 / 800;
+		width: 100%;
+		align-self: stretch;
+		/* Let the canvas dictate the visual size; no hard aspect-ratio
+		   or max-width / max-height constraints needed here. */
 	}
 }
 
