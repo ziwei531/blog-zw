@@ -29,12 +29,18 @@ The dev server runs at `http://localhost:8081` by default. Production output goe
 ├── _site/                   # Build output (gitignored)
 ├── css/
 │   └── style.css            # Styles (dark theme, CSS custom properties)
+├── game-corner/             # Browser games (flappy bird, anime runner)
+│   ├── flappy-bird/
+│   └── anime-runner/
+├── images/                  # Image assets
 ├── js/
 │   └── main.js
 ├── posts/
 │   ├── posts.11tydata.js    # Directory data file (layout, tags, draft logic)
 │   └── *.md                 # Blog posts written in Markdown
-├── eleventy.config.js       # Eleventy configuration
+├── .pages.yml               # Pages CMS config (browser-based editing)
+├── .github/                 # Agent skills, coding standards, code review
+├── eleventy.config.js       # Eleventy configuration (ES module)
 ├── index.html               # Home page with paginated post listing
 ├── package.json
 └── README.md
@@ -48,7 +54,8 @@ The dev server runs at `http://localhost:8081` by default. Production output goe
 - **Drafts** — Set `draft: true` in frontmatter to hide a post from production (still visible on localhost)
 - **Browser-based editing** — Optional [Pages CMS](https://pagescms.org/) integration for writing posts in a browser UI
 - **Task lists** — Rendered via `markdown-it-task-lists` plugin
-- **Passthrough copy** — `css/`, `images/`, and `js/` folders are copied directly to `_site/`
+- **ES modules** — Project uses `"type": "module"` in package.json for native ES module syntax
+- **Passthrough copy** — `css/`, `images/`, `js/`, and per-feature game assets are copied directly to `_site/`
 
 ## How It Works
 
