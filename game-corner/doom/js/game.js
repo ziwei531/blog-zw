@@ -23,7 +23,7 @@ async function startDoom() {
 		const game = new DOOM( {
 			  screenWidth    : SCREEN_WIDTH
 			, screenHeight   : SCREEN_HEIGHT
-			, wasmURL        : "/game-corner/doom/wasm/doom.wasm"
+			, wasmURL        : "./wasm/doom.wasm"
 			, keyboardTarget : canvas
 			, enableLogs     : true
 			, onFrameRender  : ( { screen } ) => {
