@@ -10,6 +10,24 @@ const startBtn = document.getElementById( "doom-start-btn" );
 
 let gameStarted = false;
 
+// Make canvas focusable so keyboard events reach it
+canvas.setAttribute( "tabindex", "0" );
+canvas.style.outline = "none";
+
+// Prevent browser scrolling / default actions from game keys
+window.addEventListener( "keydown", ( event ) => {
+	const gameKeys = [
+		"ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight",
+		" ", "Control", "Shift", "Alt",
+		"1", "2", "3", "4", "5", "6", "7",
+		"Enter", "Escape", "Tab",
+	];
+
+	if ( gameKeys.includes( event.key ) || event.key.startsWith( "Arrow" ) ) {
+		event.preventDefault();
+	}
+} );
+
 async function startDoom() {
 	if ( gameStarted ) {
 		return;
@@ -18,6 +36,8 @@ async function startDoom() {
 	gameStarted = true;
 
 	overlay.classList.add( "hidden" );
+
+	canvas.focus();
 
 	try {
 		const game = new DOOM( {
@@ -59,5 +79,10 @@ async function startDoom() {
 
 startBtn.addEventListener( "click", startDoom );
 
-// Allow click on canvas to refocus keyboard
+// Refocus canvas on click (handles tab-away or accidental blur)
 canvas.addEventListener( "click", () => canvas.focus() );
+canvas.addEventListener( "blur", () => {
+	if ( gameStarted ) {
+		setTimeout( () => canvas.focus(), 100 );
+	}
+} );
