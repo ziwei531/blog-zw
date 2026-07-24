@@ -1,0 +1,21 @@
+---
+layout: layouts/layout.njk
+title: DOOM
+hideNav: true
+bodyClass: doom-game-page
+pageCss: /game-corner/doom/doom.css
+pageJs: /game-corner/doom/js/game.js
+pageJsType: module
+---
+
+<div class="game-wrapper">
+  <canvas id="game" width="640" height="400"></canvas>
+  <div class="doom-overlay" id="doom-overlay">
+    <div class="doom-overlay-inner">
+      <h2>DOOM</h2>
+      <p>Click to start. Uses keyboard controls.</p>
+      <p class="doom-controls">Arrows to move · Ctrl to fire · Shift to run · Space to open · 1-7 weapons · Esc to menu</p>
+      <button class="doom-start-btn" id="doom-start-btn">Start DOOM</button>
+    </div>
+  </div>
+</div>

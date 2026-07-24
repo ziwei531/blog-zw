@@ -1,0 +1,83 @@
+.doom-game-page {
+	background: #000;
+}
+
+.game-wrapper {
+	position: relative;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	min-height: 100vh;
+	padding: 0;
+}
+
+#game {
+	max-width: 100%;
+	width: 640px;
+	height: auto;
+	image-rendering: pixelated;
+	image-rendering: crisp-edges;
+	border: 2px solid #333;
+	background: #000;
+}
+
+/* Click-to-start overlay */
+.doom-overlay {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	background: rgba(0, 0, 0, 0.85);
+	z-index: 10;
+	transition: opacity 0.3s ease;
+}
+
+.doom-overlay.hidden {
+	opacity: 0;
+	pointer-events: none;
+}
+
+.doom-overlay-inner {
+	text-align: center;
+	color: #c00;
+	font-family: "Courier New", monospace;
+}
+
+.doom-overlay-inner h2 {
+	font-size: 3rem;
+	letter-spacing: 0.15em;
+	margin-bottom: 1rem;
+	color: #f00;
+	text-shadow: 0 0 12px rgba(255, 0, 0, 0.6);
+}
+
+.doom-overlay-inner p {
+	color: #ccc;
+	margin-bottom: 0.5rem;
+	font-size: 0.95rem;
+}
+
+.doom-controls {
+	font-size: 0.8rem !important;
+	color: #888 !important;
+}
+
+.doom-start-btn {
+	margin-top: 1.5rem;
+	padding: 0.6rem 2rem;
+	font-family: "Courier New", monospace;
+	font-size: 1.1rem;
+	font-weight: bold;
+	color: #fff;
+	background: #8b0000;
+	border: 2px solid #f00;
+	border-radius: 4px;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.doom-start-btn:hover {
+	background: #f00;
+	color: #000;
+}

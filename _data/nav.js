@@ -17,6 +17,7 @@ export default {
 			children: [
 				{ label: "Flappy Bird", url: "/game-corner/flappy-bird/" },
 				{ label: "Runner Game", url: "/game-corner/anime-runner/" },
+				{ label: "DOOM", url: "/game-corner/doom/" },
 			],
 		},
 	],
