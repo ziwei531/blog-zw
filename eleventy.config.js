@@ -85,4 +85,13 @@ function _configureEleventyPassthroughs( eleventyConfig ) {
 	eleventyConfig.addPassthroughCopy( {
 		"game-corner/anime-runner/js": "game-corner/anime-runner/js",
 	} );
+	eleventyConfig.addPassthroughCopy( {
+		"game-corner/doom/doom.css": "game-corner/doom/doom.css",
+	} );
+	eleventyConfig.addPassthroughCopy( {
+		"game-corner/doom/js": "game-corner/doom/js",
+	} );
+	eleventyConfig.addPassthroughCopy( {
+		"game-corner/doom/wasm": "game-corner/doom/wasm",
+	} );
 }
