@@ -1,0 +1,18 @@
+/* Embedded simulator iframes ( coin flip, gacha ) — height is set by embed.js */
+.sim-embed {
+  display: block;
+  width: 100%;
+  max-width: 34rem; /* matches the simulator's own app column width */
+  margin-inline: auto;
+  min-height: 480px; /* visible floor before embed.js sizes the frame */
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-bg-elevated);
+}
+
+.sim-embed-caption {
+  margin-top: var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  text-align: center;
+}

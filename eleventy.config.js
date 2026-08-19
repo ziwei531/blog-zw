@@ -94,4 +94,10 @@ function _configureEleventyPassthroughs( eleventyConfig ) {
 	eleventyConfig.addPassthroughCopy( {
 		"game-corner/doom/wasm": "game-corner/doom/wasm",
 	} );
+	eleventyConfig.addPassthroughCopy( {
+		"game-corner/embed/embed.css": "game-corner/embed/embed.css",
+	} );
+	eleventyConfig.addPassthroughCopy( {
+		"game-corner/embed/embed.js": "game-corner/embed/embed.js",
+	} );
 }

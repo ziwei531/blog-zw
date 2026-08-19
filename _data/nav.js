@@ -18,6 +18,8 @@ export default {
 				{ label: "Flappy Bird", url: "/game-corner/flappy-bird/" },
 				{ label: "Runner Game", url: "/game-corner/anime-runner/" },
 				{ label: "DOOM", url: "/game-corner/doom/" },
+				{ label: "Coin Flip", url: "/game-corner/coin-flip/" },
+				{ label: "Gacha Simulator", url: "/game-corner/gacha-simulator/" },
 			],
 		},
 	],
