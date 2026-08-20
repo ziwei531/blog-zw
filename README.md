@@ -43,8 +43,15 @@ The dev server runs at `http://localhost:8081` by default. Production output goe
 ├── eleventy.config.js       # Eleventy configuration (ES module)
 ├── index.html               # Home page with paginated post listing
 ├── package.json
-└── README.md
+├── README.md
+├── AGENTS.md
+└── git-commit-convention.md
 ```
+
+## Conventions
+
+- JavaScript: see `.github/context/coding-standards/js-coding-standards.md`.
+- Git commits: see [`git-commit-convention.md`](./git-commit-convention.md).
 
 ## Features
 
