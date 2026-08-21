@@ -1,11 +1,11 @@
 {
-  "name": "eleventy-zw",
+  "name": "blog-zw",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
     "build": "npx @11ty/eleventy",
-    "build:prod": "npx @11ty/eleventy --pathprefix=eleventy-zw",
+    "build:prod": "npx @11ty/eleventy --pathprefix=blog-zw",
     "start": "npx @11ty/eleventy --serve"
   },
   "keywords": [],

@@ -1,8 +1,8 @@
-# eleventy-zw
+# blog-zw
 
 A personal static site built with [Eleventy](https://www.11ty.dev/) (v3), using [Nunjucks](https://mozilla.github.io/nunjucks/) templates and [markdown-it](https://github.com/markdown-it/markdown-it) for Markdown processing.
 
-**Website:** [ziwei531.github.io/eleventy-zw](https://ziwei531.github.io/eleventy-zw/)
+**Website:** [ziwei531.github.io/blog-zw](https://ziwei531.github.io/blog-zw/)
 
 ## Getting Started
 
