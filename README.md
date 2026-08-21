@@ -2,6 +2,8 @@
 
 A personal static site built with [Eleventy](https://www.11ty.dev/) (v3), using [Nunjucks](https://mozilla.github.io/nunjucks/) templates and [markdown-it](https://github.com/markdown-it/markdown-it) for Markdown processing.
 
+**Website:** [ziwei531.github.io/eleventy-zw](https://ziwei531.github.io/eleventy-zw/)
+
 ## Getting Started
 
 ```bash
@@ -41,6 +43,8 @@ The dev server runs at `http://localhost:8081` by default. Production output goe
 ├── .pages.yml               # Pages CMS config (browser-based editing)
 ├── .github/                 # Agent skills, coding standards, code review
 ├── eleventy.config.js       # Eleventy configuration (ES module)
+├── scripts/
+│   └── prepare-pages.py      # Stamps deployed assets with a build version
 ├── index.html               # Home page with paginated post listing
 ├── package.json
 ├── README.md
@@ -63,6 +67,7 @@ The dev server runs at `http://localhost:8081` by default. Production output goe
 - **Task lists** — Rendered via `markdown-it-task-lists` plugin
 - **ES modules** — Project uses `"type": "module"` in package.json for native ES module syntax
 - **Passthrough copy** — `css/`, `images/`, `js/`, and per-feature game assets are copied directly to `_site/`
+- **Deployment cache busting** — GitHub Pages asset URLs are stamped with the commit SHA on deployment
 
 ## How It Works
 

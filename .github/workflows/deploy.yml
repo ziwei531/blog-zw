@@ -38,6 +38,11 @@ jobs:
       - name: Build
         run: npm run build:prod
 
+      - name: Bust static asset caches
+        env:
+          DEPLOY_VERSION: ${{ github.sha }}
+        run: python scripts/prepare-pages.py _site "$DEPLOY_VERSION"
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 

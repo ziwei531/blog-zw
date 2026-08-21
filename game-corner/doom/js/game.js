@@ -1,4 +1,4 @@
-import { DOOM } from "./doom-engine.js";
+import { DOOM } from "./doom-engine.js?v=__BUILD_VERSION__";
 
 const SCREEN_WIDTH  = 640;
 const SCREEN_HEIGHT = 400;

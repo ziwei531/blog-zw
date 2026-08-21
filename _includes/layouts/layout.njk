@@ -7,9 +7,9 @@
   <meta name="description" content="{{ description or 'Zi Wei — Personal site' }}">
   <title>{{ title or "Zi Wei" }}{% if subtitle %} — {{ subtitle }}{% endif %}</title>
   {% include "theme-init.njk" %}
-  <link rel="stylesheet" href="{{ '/css/style.css' | url }}">
+  <link rel="stylesheet" href="{{ '/css/style.css' | url }}?v=__BUILD_VERSION__">
   {% if pageCss %}
-  <link rel="stylesheet" href="{{ pageCss | url }}">
+  <link rel="stylesheet" href="{{ pageCss | url }}?v=__BUILD_VERSION__">
   {% endif %}
 </head>
 <body{% if bodyClass %} class="{{ bodyClass }}"{% endif %}>
@@ -58,8 +58,8 @@
   </footer>
 
   {% if pageJs %}
-  <script{% if pageJsType %} type="{{ pageJsType }}"{% endif %} src="{{ pageJs | url }}"></script>
+  <script{% if pageJsType %} type="{{ pageJsType }}"{% endif %} src="{{ pageJs | url }}?v=__BUILD_VERSION__"></script>
   {% endif %}
-  <script src="{{ '/js/main.js' | url }}"></script>
+  <script src="{{ '/js/main.js' | url }}?v=__BUILD_VERSION__"></script>
 </body>
 </html>
