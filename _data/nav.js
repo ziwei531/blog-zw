@@ -19,7 +19,7 @@ export default {
 				{ label: "Runner Game", url: "/game-corner/anime-runner/" },
 				{ label: "DOOM", url: "/game-corner/doom/" },
 				{ label: "Coin Flip", url: "/game-corner/coin-flip/" },
-				{ label: "Gacha Simulator", url: "https://ziwei531.github.io/blog-zw/game-corner/gacha-simulator/" },
+				{ label: "Gacha Simulator", url: "/game-corner/gacha-simulator/" },
 			],
 		},
 	],
